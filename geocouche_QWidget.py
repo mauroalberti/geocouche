@@ -45,7 +45,7 @@ class geocouche_QWidget( QWidget ):
         layout = QVBoxLayout() 
         
         self.define_point_layer_QPushButton = QPushButton(self.tr("Define point layer"))  
-        self.define_point_layer_QPushButton.clicked.connect( self.define_point_layer ) 
+        self.define_point_layer_QPushButton.clicked.connect( self.define_structural_input_params ) 
         layout.addWidget(self.define_point_layer_QPushButton )
         
         input_QGroupBox.setLayout(layout)
@@ -53,15 +53,14 @@ class geocouche_QWidget( QWidget ):
         return input_QGroupBox
                   
 
-    def define_point_layer( self ):        
+    def define_structural_input_params( self ):        
+ 
 
-        current_point_layers = loaded_point_layers()   
-
-        if len( current_point_layers ) == 0:
+        if len( loaded_point_layers()  ) == 0:
             self.warn( "No available point layers" )
             return            
 
-        dialog = SourcePointLayerDialog( current_point_layers )
+        dialog = SourcePointLayerDialog()
 
         if dialog.exec_():
             structural_input_params = self.get_structural_input_params( dialog )
@@ -72,19 +71,19 @@ class geocouche_QWidget( QWidget ):
 
     def get_structural_input_params(self, dialog ):
         
-        """
-        selected_dems = []
-        selected_dem_colors = [] 
-        for dem_qgis_ndx in range( dialog.listDEMs_treeWidget.topLevelItemCount () ):
-            curr_DEM_item = dialog.listDEMs_treeWidget.topLevelItem ( dem_qgis_ndx ) 
-            if curr_DEM_item.checkState ( 0 ) == 2:
-                selected_dems.append( dialog.singleband_raster_layers_in_project[ dem_qgis_ndx ] )
-                selected_dem_colors.append( dialog.listDEMs_treeWidget.itemWidget( curr_DEM_item, 1 ).currentText() )  
-         
-        return selected_dems, selected_dem_colors
-        """
-    
-        return None
+        self.point_layer = dialog.point_layer
+        
+        self.choose_message = dialog.choose_message
+        
+        self.plane_azimuth_type_field = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
+        self.plane_azimuth_name_field = dialog.input_plane_orient_azimuth_srcfld_QComboBox.currentText()
+        self.plane_dip_type_field = dialog.input_plane_orient_dip_type_QComboBox.currentText()        
+        self.plane_dip_name_field = dialog.input_plane_orient_dip_srcfld_QComboBox.currentText()        
+        
+        self.line_azimuth_type_field = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
+        self.line_azimuth_name_field = dialog.input_line_orient_azimuth_srcfld_QComboBox.currentText()
+        self.line_dip_type_field = dialog.input_line_orient_dip_type_QComboBox.currentText()        
+        self.line_dip_name_field = dialog.input_line_orient_dip_srcfld_QComboBox.currentText() 
     
   
     def open_help_page(self):
@@ -109,25 +108,35 @@ class geocouche_QWidget( QWidget ):
         
 class SourcePointLayerDialog( QDialog ):
     
-    def __init__(self, current_point_layers, parent=None):
+    
+    def __init__(self, parent=None):
                 
         super( SourcePointLayerDialog, self ).__init__(parent)
+
+        
+        self.setup_gui()
+        
+        
+    def setup_gui(self):        
         
         self.choose_message = "choose"
-        
-        self.current_point_layers = current_point_layers
  
         layout = QGridLayout()
                         
-
-        layout.addWidget(QLabel("Layer (point)"), 0,0,1,1)
+        # input layer
+        
+        layer_QGroupBox = QGroupBox("Input point layer")
+        layer_QGridLayout = QGridLayout() 
         
         self.input_layers_QComboBox = QComboBox()
-        layout.addWidget(self.input_layers_QComboBox, 0,1,1,1)   
+        layer_QGridLayout.addWidget(self.input_layers_QComboBox, 0,0,1,2) 
+        
+        layer_QGroupBox.setLayout(layer_QGridLayout)              
+        layout.addWidget(layer_QGroupBox, 0,0,1,2)          
 
         # plane values
                 
-        plane_QGroupBox = QGroupBox("Planar orientation")
+        plane_QGroupBox = QGroupBox("Planar orientation source fields")
         plane_QGridLayout = QGridLayout()    
 
         self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
@@ -150,7 +159,7 @@ class SourcePointLayerDialog( QDialog ):
 
         # line values
         
-        line_QGroupBox = QGroupBox("Line orientation")
+        line_QGroupBox = QGroupBox("Line orientation source fields")
         line_QGridLayout = QGridLayout() 
         
         self.input_line_orient_azimuth_type_QComboBox = QComboBox()
@@ -177,9 +186,6 @@ class SourcePointLayerDialog( QDialog ):
                                     self.input_line_orient_dip_srcfld_QComboBox ]                
                 
         self.refresh_struct_point_lyr_combobox()
-
-                        
-        # self.refresh_structural_fields_comboboxes( )
         
         self.input_layers_QComboBox.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes )
         
@@ -205,8 +211,7 @@ class SourcePointLayerDialog( QDialog ):
 
 
     def refresh_struct_point_lyr_combobox(self):
-        
-        # self.current_structural_point_layer = 
+
         self.pointLayers = loaded_point_layers()
         self.input_layers_QComboBox.clear()        
         
