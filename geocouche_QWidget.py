@@ -53,8 +53,9 @@ class geocouche_QWidget( QWidget ):
         return input_QGroupBox
                   
 
-    def define_structural_input_params( self ):        
- 
+    def define_structural_input_params( self ):
+        
+        self.structural_input_params = None   
 
         if len( loaded_point_layers()  ) == 0:
             self.warn( "No available point layers" )
@@ -63,29 +64,80 @@ class geocouche_QWidget( QWidget ):
         dialog = SourcePointLayerDialog()
 
         if dialog.exec_():
-            structural_input_params = self.get_structural_input_params( dialog )
+            try:
+                structural_input_params = self.get_structural_input_params( dialog )
+            except:
+                self.warn( "Incorrect definition")
+                return 
         else:
-            self.warn( "No defined point layer" )
+            self.warn( "Nothing defined")
             return
+
+        if not self.formally_valid_params( structural_input_params ):
+            self.warn( "Invalid parameters")
+            return
+        else:
+            self.info("Input data defined")
+        
+        self.structural_input_params = structural_input_params
+
+
+    def formally_valid_params(self, structural_input_params ):
+        
+        print structural_input_params["plane_azimuth_name_field"]
+        print structural_input_params["plane_dip_name_field"]
+        print structural_input_params["line_azimuth_name_field"]
+        print structural_input_params["line_dip_name_field"]
+
+        
+        if structural_input_params["plane_azimuth_name_field"] is not None and \
+           structural_input_params["plane_dip_name_field"] is not None:
+            return True
+        
+        if structural_input_params["line_azimuth_name_field"] is not None and \
+           structural_input_params["line_dip_name_field"] is not None:
+            return True
+        
+        return False
 
 
     def get_structural_input_params(self, dialog ):
         
-        self.point_layer = dialog.point_layer
+        point_layer = dialog.point_layer
         
-        self.choose_message = dialog.choose_message
+        field_undefined_txt = dialog.field_undefined_txt
         
-        self.plane_azimuth_type_field = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
-        self.plane_azimuth_name_field = dialog.input_plane_orient_azimuth_srcfld_QComboBox.currentText()
-        self.plane_dip_type_field = dialog.input_plane_orient_dip_type_QComboBox.currentText()        
-        self.plane_dip_name_field = dialog.input_plane_orient_dip_srcfld_QComboBox.currentText()        
+        plane_azimuth_type_field = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
+        plane_azimuth_name_field = self.parse_field_choice(dialog.input_plane_azimuth_srcfld_QComboBox.currentText(), field_undefined_txt)
+            
+        plane_dip_type_field = dialog.input_plane_orient_dip_type_QComboBox.currentText()        
+        plane_dip_name_field = self.parse_field_choice(dialog.input_plane_dip_srcfld_QComboBox.currentText(), field_undefined_txt)       
+                    
+        line_azimuth_type_field = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
+        line_azimuth_name_field = self.parse_field_choice( dialog.input_line_azimuth_srcfld_QComboBox.currentText(), field_undefined_txt)
+                    
+        line_dip_type_field = dialog.input_line_orient_dip_type_QComboBox.currentText()        
+        line_dip_name_field = self.parse_field_choice( dialog.input_line_dip_srcfld_QComboBox.currentText(), field_undefined_txt)
         
-        self.line_azimuth_type_field = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
-        self.line_azimuth_name_field = dialog.input_line_orient_azimuth_srcfld_QComboBox.currentText()
-        self.line_dip_type_field = dialog.input_line_orient_dip_type_QComboBox.currentText()        
-        self.line_dip_name_field = dialog.input_line_orient_dip_srcfld_QComboBox.currentText() 
+        return dict(point_layer = point_layer,
+                    plane_azimuth_type_field = plane_azimuth_type_field,
+                    plane_azimuth_name_field = plane_azimuth_name_field,
+                    plane_dip_type_field = plane_dip_type_field,
+                    plane_dip_name_field = plane_dip_name_field,
+                    line_azimuth_type_field = line_azimuth_type_field,
+                    line_azimuth_name_field = line_azimuth_name_field,
+                    line_dip_type_field = line_dip_type_field,
+                    line_dip_name_field = line_dip_name_field)
     
-  
+
+    def parse_field_choice(self, val, choose_message):
+        
+        if val == choose_message:
+            return None
+        else:
+            return val
+        
+         
     def open_help_page(self):
         
         import webbrowser
@@ -112,14 +164,14 @@ class SourcePointLayerDialog( QDialog ):
     def __init__(self, parent=None):
                 
         super( SourcePointLayerDialog, self ).__init__(parent)
-
         
         self.setup_gui()
         
         
     def setup_gui(self):        
         
-        self.choose_message = "choose"
+        self.layer_choose_msg = "choose"
+        self.field_undefined_txt = "---"
  
         layout = QGridLayout()
                         
@@ -143,15 +195,15 @@ class SourcePointLayerDialog( QDialog ):
         self.input_plane_orient_azimuth_type_QComboBox.addItems(geocouche_QWidget.input_plane_azimuth_types)
         plane_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0,0,1,1)   
                 
-        self.input_plane_orient_azimuth_srcfld_QComboBox = QComboBox()
-        plane_QGridLayout.addWidget(self.input_plane_orient_azimuth_srcfld_QComboBox, 0,1,1,1)       
+        self.input_plane_azimuth_srcfld_QComboBox = QComboBox()
+        plane_QGridLayout.addWidget(self.input_plane_azimuth_srcfld_QComboBox, 0,1,1,1)       
  
         self.input_plane_orient_dip_type_QComboBox = QComboBox()
         self.input_plane_orient_dip_type_QComboBox.addItems(geocouche_QWidget.input_plane_dip_types)
         plane_QGridLayout.addWidget(self.input_plane_orient_dip_type_QComboBox, 1,0,1,1) 
         
-        self.input_plane_orient_dip_srcfld_QComboBox = QComboBox()
-        plane_QGridLayout.addWidget(self.input_plane_orient_dip_srcfld_QComboBox, 1,1,1,1)         
+        self.input_plane_dip_srcfld_QComboBox = QComboBox()
+        plane_QGridLayout.addWidget(self.input_plane_dip_srcfld_QComboBox, 1,1,1,1)         
 
         plane_QGroupBox.setLayout(plane_QGridLayout)              
         layout.addWidget(plane_QGroupBox, 1,0,2,2)
@@ -166,24 +218,24 @@ class SourcePointLayerDialog( QDialog ):
         self.input_line_orient_azimuth_type_QComboBox.addItems(geocouche_QWidget.input_line_azimuth_types)
         line_QGridLayout.addWidget(self.input_line_orient_azimuth_type_QComboBox, 0,0,1,1)   
                 
-        self.input_line_orient_azimuth_srcfld_QComboBox = QComboBox()
-        line_QGridLayout.addWidget(self.input_line_orient_azimuth_srcfld_QComboBox, 0,1,1,1)    
+        self.input_line_azimuth_srcfld_QComboBox = QComboBox()
+        line_QGridLayout.addWidget(self.input_line_azimuth_srcfld_QComboBox, 0,1,1,1)    
         
         self.input_line_orient_dip_type_QComboBox = QComboBox()
         self.input_line_orient_dip_type_QComboBox.addItems(geocouche_QWidget.input_line_dip_types)
         line_QGridLayout.addWidget(self.input_line_orient_dip_type_QComboBox, 1,0,1,1) 
         
-        self.input_line_orient_dip_srcfld_QComboBox = QComboBox()
-        line_QGridLayout.addWidget(self.input_line_orient_dip_srcfld_QComboBox, 1,1,1,1)         
+        self.input_line_dip_srcfld_QComboBox = QComboBox()
+        line_QGridLayout.addWidget(self.input_line_dip_srcfld_QComboBox, 1,1,1,1)         
  
         line_QGroupBox.setLayout(line_QGridLayout)              
         layout.addWidget(line_QGroupBox, 3,0,2,2)
          
  
-        self.structural_comboxes = [self.input_plane_orient_azimuth_srcfld_QComboBox,
-                                    self.input_plane_orient_dip_srcfld_QComboBox,
-                                    self.input_line_orient_azimuth_srcfld_QComboBox,
-                                    self.input_line_orient_dip_srcfld_QComboBox ]                
+        self.structural_comboxes = [self.input_plane_azimuth_srcfld_QComboBox,
+                                    self.input_plane_dip_srcfld_QComboBox,
+                                    self.input_line_azimuth_srcfld_QComboBox,
+                                    self.input_line_dip_srcfld_QComboBox ]                
                 
         self.refresh_struct_point_lyr_combobox()
         
@@ -215,7 +267,7 @@ class SourcePointLayerDialog( QDialog ):
         self.pointLayers = loaded_point_layers()
         self.input_layers_QComboBox.clear()        
         
-        self.input_layers_QComboBox.addItem( self.choose_message )
+        self.input_layers_QComboBox.addItem( self.layer_choose_msg )
         self.input_layers_QComboBox.addItems( [ layer.name() for layer in self.pointLayers ] ) 
         
         self.reset_structural_field_comboboxes()
@@ -225,7 +277,7 @@ class SourcePointLayerDialog( QDialog ):
         
         for structural_combox in self.structural_comboxes:
             structural_combox.clear()
-            structural_combox.addItem("---")
+            structural_combox.addItem(self.field_undefined_txt)
             
                      
     def refresh_structural_fields_comboboxes( self ):
