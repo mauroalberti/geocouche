@@ -7,10 +7,11 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from qgis.core import QgsMapLayerRegistry
-from geosurf.qgs_tools import loaded_point_layers
+from geosurf.qgs_tools import loaded_point_layers, get_point_data
 
        
 class geocouche_QWidget( QWidget ):
+    
     
     input_plane_azimuth_types = ["dip dir.", "strike rhr"]
     input_plane_dip_types = ["dip angle"]    
@@ -29,9 +30,10 @@ class geocouche_QWidget( QWidget ):
                       
     def setup_gui( self ): 
 
-        self.dialog_layout = QVBoxLayout()
+        self.dialog_layout = QHBoxLayout()
         
         self.dialog_layout.addWidget( self.setup_inputdata() )
+        self.dialog_layout.addWidget( self.setup_processing() )        
                                                            
         self.setLayout(self.dialog_layout)            
         self.adjustSize()               
@@ -51,7 +53,29 @@ class geocouche_QWidget( QWidget ):
         input_QGroupBox.setLayout(layout)
         
         return input_QGroupBox
-                  
+  
+  
+    def setup_processing(self):
+        
+        processing_QGroupBox = QGroupBox("Processing")
+        
+        layout = QGridLayout()
+
+        self.plot_stereonet_QPushButton = QPushButton(self.tr("Plot stereonet"))          
+        self.plot_stereonet_QPushButton.clicked.connect( self.plot_stereonet )         
+        layout.addWidget(self.plot_stereonet_QPushButton, 0, 0, 1, 1 )
+        
+        self.plot_all_data_QRadioButton = QRadioButton("all data")
+        self.plot_all_data_QRadioButton.setChecked(True)
+        layout.addWidget(self.plot_all_data_QRadioButton, 0,1,1,1)
+
+        self.plot_selected_data_QRadioButton = QRadioButton("selected")
+        layout.addWidget(self.plot_selected_data_QRadioButton, 0,2,1,1)
+                
+        processing_QGroupBox.setLayout(layout)
+        
+        return processing_QGroupBox
+    
 
     def define_structural_input_params( self ):
         
@@ -65,7 +89,7 @@ class geocouche_QWidget( QWidget ):
 
         if dialog.exec_():
             try:
-                structural_input_params = self.get_structural_input_params( dialog )
+                point_layer, structural_input_params = self.get_structural_input_params( dialog )
             except:
                 self.warn( "Incorrect definition")
                 return 
@@ -79,17 +103,12 @@ class geocouche_QWidget( QWidget ):
         else:
             self.info("Input data defined")
         
+        self.point_layer = point_layer
         self.structural_input_params = structural_input_params
 
 
     def formally_valid_params(self, structural_input_params ):
-        
-        print structural_input_params["plane_azimuth_name_field"]
-        print structural_input_params["plane_dip_name_field"]
-        print structural_input_params["line_azimuth_name_field"]
-        print structural_input_params["line_dip_name_field"]
 
-        
         if structural_input_params["plane_azimuth_name_field"] is not None and \
            structural_input_params["plane_dip_name_field"] is not None:
             return True
@@ -107,27 +126,26 @@ class geocouche_QWidget( QWidget ):
         
         field_undefined_txt = dialog.field_undefined_txt
         
-        plane_azimuth_type_field = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
+        plane_azimuth_type = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
         plane_azimuth_name_field = self.parse_field_choice(dialog.input_plane_azimuth_srcfld_QComboBox.currentText(), field_undefined_txt)
             
-        plane_dip_type_field = dialog.input_plane_orient_dip_type_QComboBox.currentText()        
+        plane_dip_type = dialog.input_plane_orient_dip_type_QComboBox.currentText()        
         plane_dip_name_field = self.parse_field_choice(dialog.input_plane_dip_srcfld_QComboBox.currentText(), field_undefined_txt)       
                     
-        line_azimuth_type_field = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
+        line_azimuth_type = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
         line_azimuth_name_field = self.parse_field_choice( dialog.input_line_azimuth_srcfld_QComboBox.currentText(), field_undefined_txt)
                     
-        line_dip_type_field = dialog.input_line_orient_dip_type_QComboBox.currentText()        
+        line_dip_type = dialog.input_line_orient_dip_type_QComboBox.currentText()        
         line_dip_name_field = self.parse_field_choice( dialog.input_line_dip_srcfld_QComboBox.currentText(), field_undefined_txt)
         
-        return dict(point_layer = point_layer,
-                    plane_azimuth_type_field = plane_azimuth_type_field,
-                    plane_azimuth_name_field = plane_azimuth_name_field,
-                    plane_dip_type_field = plane_dip_type_field,
-                    plane_dip_name_field = plane_dip_name_field,
-                    line_azimuth_type_field = line_azimuth_type_field,
-                    line_azimuth_name_field = line_azimuth_name_field,
-                    line_dip_type_field = line_dip_type_field,
-                    line_dip_name_field = line_dip_name_field)
+        return point_layer, dict(plane_azimuth_type = plane_azimuth_type,
+                                plane_azimuth_name_field = plane_azimuth_name_field,
+                                plane_dip_type = plane_dip_type,
+                                plane_dip_name_field = plane_dip_name_field,
+                                line_azimuth_type = line_azimuth_type,
+                                line_azimuth_name_field = line_azimuth_name_field,
+                                line_dip_type = line_dip_type,
+                                line_dip_name_field = line_dip_name_field)
     
 
     def parse_field_choice(self, val, choose_message):
@@ -136,7 +154,36 @@ class geocouche_QWidget( QWidget ):
             return None
         else:
             return val
+
+
+    def get_used_field_names(self):
         
+        used_field_names = []
+        
+        usable_fields = [self.structural_input_params["plane_azimuth_name_field"],
+                         self.structural_input_params["plane_dip_name_field"],
+                         self.structural_input_params["line_azimuth_name_field"],
+                         self.structural_input_params["line_dip_name_field"] ]
+        
+        for usable_fld in usable_fields:
+            if usable_fld is not None:
+                used_field_names.append(usable_fld)
+
+        return used_field_names
+        
+        
+    def plot_stereonet(self):
+        
+        self.used_field_names = self.get_used_field_names()
+        if self.plot_all_data_QRadioButton.isChecked():
+            selected = False
+        else:
+            selected = True       
+        structural_data = get_point_data(self.point_layer, self.used_field_names, selected)
+        
+        for rec in structural_data:
+            print rec
+         
          
     def open_help_page(self):
         

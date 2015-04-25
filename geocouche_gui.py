@@ -65,11 +65,11 @@ class geocouche_gui( object ):
 
         geocouche_DockWidget = QDockWidget( 'geocouche', self.interface.mainWindow() )        
         geocouche_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
-        geocouche_DockWidget.setAllowedAreas( Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea )        
+        geocouche_DockWidget.setAllowedAreas( Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea )        
         self.geocouche_QWidget = geocouche_QWidget( self.canvas, self.plugin_name )        
         geocouche_DockWidget.setWidget( self.geocouche_QWidget )
         geocouche_DockWidget.destroyed.connect( self.closeEvent )        
-        self.interface.addDockWidget( Qt.RightDockWidgetArea, geocouche_DockWidget )
+        self.interface.addDockWidget( Qt.BottomDockWidgetArea, geocouche_DockWidget )
                 
         self.is_geocouche_widget_open = True
         
