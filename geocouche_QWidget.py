@@ -9,6 +9,8 @@ from PyQt4.QtGui import *
 from qgis.core import QgsMapLayerRegistry
 from geosurf.qgs_tools import loaded_point_layers, get_point_data
 
+from processing import plot_stereonet
+
        
 class geocouche_QWidget( QWidget ):
     
@@ -225,35 +227,44 @@ class geocouche_QWidget( QWidget ):
         _, structural_data = get_point_data(self.point_layer, self.actual_field_names, selected)
         
         input_data_types = self.get_actual_data_type()
-             
-        xy_vals, plane_orientations, lineament_orientations = self.parse_geodata(input_data_types, structural_data)  
-         
-        for rec in lineament_orientations:
-            print rec
+           
+        try:  
+            _, plane_orientations, lineament_orientations = self.parse_geodata(input_data_types, structural_data)  
+        except Exception, msg:
+            self.warn(str(msg))
+            return
+        
+        plot_stereonet(plane_orientations, lineament_orientations)
          
 
     def parse_geodata(self, input_data_types, structural_data):
         
         xy_vals = [ (float(rec[0]), float(rec[1]) ) for rec in structural_data]
         
-        if input_data_types["planar_data"]:            
-            if input_data_types["planar_az_type"] == "dip_dir":
-                dipdir_vals = [ float(rec[2]) for rec in structural_data]
-            elif input_data_types["planar_az_type"] == "strike_rhr":
-                dipdir_raw_vals = [ float(rec[2]) + 90.0 for rec in structural_data]
-                dipdir_vals = [ val if val < 360.0 else val - 360.0 for val in dipdir_raw_vals ]
-            dipangle_vals = [ float(rec[3]) for rec in structural_data]
-            plane_vals = zip(dipdir_vals, dipangle_vals)
-            line_data_ndx_start = 4            
-        else:
-            plane_vals = None
-            line_data_ndx_start = 2
-                
-        if input_data_types["linear_data"]:
-            line_vals = [ (float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in structural_data]
-        else:
-            line_vals = None     
-        
+        try:
+            if input_data_types["planar_data"]:            
+                if input_data_types["planar_az_type"] == "dip_dir":
+                    dipdir_vals = [ float(rec[2]) for rec in structural_data]
+                elif input_data_types["planar_az_type"] == "strike_rhr":
+                    dipdir_raw_vals = [ float(rec[2]) + 90.0 for rec in structural_data]
+                    dipdir_vals = [ val if val < 360.0 else val - 360.0 for val in dipdir_raw_vals ]
+                dipangle_vals = [ float(rec[3]) for rec in structural_data]
+                plane_vals = zip(dipdir_vals, dipangle_vals)
+                line_data_ndx_start = 4            
+            else:
+                plane_vals = None
+                line_data_ndx_start = 2
+        except:
+            raise Exception, "Error in planar data"
+             
+        try:   
+            if input_data_types["linear_data"]:
+                line_vals = [ (float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in structural_data]
+            else:
+                line_vals = None     
+        except:
+            raise Exception, "Error in linear data"
+                    
         return xy_vals, plane_vals, line_vals
     
                   
