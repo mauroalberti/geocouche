@@ -62,14 +62,14 @@ class geocouche_QWidget( QWidget ):
         layout = QGridLayout()
 
         self.plot_stereonet_QPushButton = QPushButton(self.tr("Plot stereonet"))          
-        self.plot_stereonet_QPushButton.clicked.connect( self.plot_stereonet )         
+        self.plot_stereonet_QPushButton.clicked.connect( self.process_geodata )         
         layout.addWidget(self.plot_stereonet_QPushButton, 0, 0, 1, 1 )
         
         self.plot_all_data_QRadioButton = QRadioButton("all data")
         self.plot_all_data_QRadioButton.setChecked(True)
         layout.addWidget(self.plot_all_data_QRadioButton, 0,1,1,1)
 
-        self.plot_selected_data_QRadioButton = QRadioButton("selected")
+        self.plot_selected_data_QRadioButton = QRadioButton("selection")
         layout.addWidget(self.plot_selected_data_QRadioButton, 0,2,1,1)
                 
         processing_QGroupBox.setLayout(layout)
@@ -156,9 +156,9 @@ class geocouche_QWidget( QWidget ):
             return val
 
 
-    def get_used_field_names(self):
+    def get_actual_field_names(self):
         
-        used_field_names = []
+        actual_field_names = []
         
         usable_fields = [self.structural_input_params["plane_azimuth_name_field"],
                          self.structural_input_params["plane_dip_name_field"],
@@ -167,24 +167,96 @@ class geocouche_QWidget( QWidget ):
         
         for usable_fld in usable_fields:
             if usable_fld is not None:
-                used_field_names.append(usable_fld)
+                actual_field_names.append(usable_fld)
 
-        return used_field_names
+        return actual_field_names
+
+
+    def get_actual_data_type(self):
+        
+        # define type for planar data
+        if self.structural_input_params["plane_azimuth_name_field"] is not None and \
+           self.structural_input_params["plane_dip_name_field"] is not None:            
+            planar_data = True
+            if self.structural_input_params["plane_azimuth_type"] ==  "dip dir.":
+                planar_az_type = "dip_dir"
+            elif self.structural_input_params["plane_azimuth_type"] ==  "strike rhr":
+                planar_az_type = "strike_rhr"
+            planar_dip_type = "dip"
+        else:
+            planar_data = False
+            planar_az_type = None
+            planar_dip_type = None
+ 
+        # define type for linear data            
+        if self.structural_input_params["line_azimuth_name_field"] is not None and \
+           self.structural_input_params["line_dip_name_field"] is not None:            
+            linear_data = True
+            linear_az_type = "trend"
+            linear_dip_type = "plunge"  
+        else:
+            linear_data = False
+            linear_az_type = None
+            linear_dip_type = None
+                   
+        
+        return dict(planar_data = planar_data,
+                    planar_az_type = planar_az_type,
+                    planar_dip_type = planar_dip_type,
+                    linear_data = linear_data,
+                    linear_az_type = linear_az_type,
+                    linear_dip_type = linear_dip_type)
         
         
-    def plot_stereonet(self):
+    def process_geodata(self):
         
-        self.used_field_names = self.get_used_field_names()
+        # get used field names in the point attribute table 
+        self.actual_field_names = self.get_actual_field_names()
+        
+        # get input data presence and type
+        self.actual_data_type = self.get_actual_data_type()
+        
+        # decide if using all data or just selected ones
         if self.plot_all_data_QRadioButton.isChecked():
             selected = False
         else:
-            selected = True       
-        structural_data = get_point_data(self.point_layer, self.used_field_names, selected)
+            selected = True  
+                 
+        _, structural_data = get_point_data(self.point_layer, self.actual_field_names, selected)
         
-        for rec in structural_data:
+        input_data_types = self.get_actual_data_type()
+             
+        xy_vals, plane_orientations, lineament_orientations = self.parse_geodata(input_data_types, structural_data)  
+         
+        for rec in lineament_orientations:
             print rec
          
-         
+
+    def parse_geodata(self, input_data_types, structural_data):
+        
+        xy_vals = [ (float(rec[0]), float(rec[1]) ) for rec in structural_data]
+        
+        if input_data_types["planar_data"]:            
+            if input_data_types["planar_az_type"] == "dip_dir":
+                dipdir_vals = [ float(rec[2]) for rec in structural_data]
+            elif input_data_types["planar_az_type"] == "strike_rhr":
+                dipdir_raw_vals = [ float(rec[2]) + 90.0 for rec in structural_data]
+                dipdir_vals = [ val if val < 360.0 else val - 360.0 for val in dipdir_raw_vals ]
+            dipangle_vals = [ float(rec[3]) for rec in structural_data]
+            plane_vals = zip(dipdir_vals, dipangle_vals)
+            line_data_ndx_start = 4            
+        else:
+            plane_vals = None
+            line_data_ndx_start = 2
+                
+        if input_data_types["linear_data"]:
+            line_vals = [ (float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in structural_data]
+        else:
+            line_vals = None     
+        
+        return xy_vals, plane_vals, line_vals
+    
+                  
     def open_help_page(self):
         
         import webbrowser

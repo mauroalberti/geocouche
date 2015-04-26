@@ -111,8 +111,7 @@ def pt_geoms_attrs( pt_layer, field_list = [] ):
     return rec_list
 
 
-def get_point_data( pt_layer, field_list = [], selected = True ):
-    
+def get_point_data( pt_layer, fields = [], selected = True ):    
     
     if selected == False or pt_layer.selectedFeatureCount() == 0:
         features = pt_layer.getFeatures()
@@ -120,10 +119,10 @@ def get_point_data( pt_layer, field_list = [], selected = True ):
         features = pt_layer.selectedFeatures()
             
     provider = pt_layer.dataProvider()    
-    field_indices = [ provider.fieldNameIndex( field_name ) for field_name in field_list ]
+    field_indices = [ provider.fieldNameIndex( field_name ) for field_name in fields ]
 
     # retrieve selected features with their geometry and relevant attributes
-    rec_list = [] 
+    rec_values = [] 
     for feature in features:             
         # fetch point geometry
         pt = feature.geometry().asPoint()
@@ -133,9 +132,11 @@ def get_point_data( pt_layer, field_list = [], selected = True ):
         for field_ndx in field_indices:
             feat_list.append( str( feature.attribute( attrs[ field_ndx ].name() ) ) )
         # add to result list
-        rec_list.append( feat_list )
-        
-    return rec_list
+        rec_values.append( feat_list )
+       
+    field_names = ["x","y"] + fields
+     
+    return field_names, rec_values
 
 
 def line_geoms_attrs( line_layer, field_list = [] ):
