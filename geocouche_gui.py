@@ -27,17 +27,15 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-#from qgis.core import *
-
-from geocouche_QWidget import geocouche_QWidget
 import resources
 
+from stereoplot_QWidget import stereoplot_QWidget
+from angles_QWidget import angles_QWidget
 
 
-class geocouche_gui( object ):
+class geocouche_gui(object):
 
     # from RedLayers by E. Ferreguti
-
     def add_action(
             self,
             icon_path,
@@ -153,13 +151,13 @@ class geocouche_gui( object ):
             self.warn("Geologic stereoplots already open")
             return
 
-        geocouche_DockWidget = QDockWidget('Stereoplot', self.interface.mainWindow() )
-        geocouche_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
-        geocouche_DockWidget.setAllowedAreas( Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea )        
-        self.geocouche_QWidget = geocouche_QWidget( self.canvas, self.plugin_name )        
-        geocouche_DockWidget.setWidget( self.geocouche_QWidget )
-        geocouche_DockWidget.destroyed.connect( self.closeEvent )        
-        self.interface.addDockWidget( Qt.BottomDockWidgetArea, geocouche_DockWidget )
+        stereoplot_DockWidget = QDockWidget('Stereoplot', self.interface.mainWindow())
+        stereoplot_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
+        stereoplot_DockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)        
+        self.stereoplot_QWidget = stereoplot_QWidget(self.canvas, self.plugin_name)
+        stereoplot_DockWidget.setWidget(self.stereoplot_QWidget)
+        stereoplot_DockWidget.destroyed.connect(self.closeEvent)        
+        self.interface.addDockWidget(Qt.BottomDockWidgetArea, stereoplot_DockWidget)
                 
         self.is_stereoplot_widget_open = True
 
@@ -170,9 +168,13 @@ class geocouche_gui( object ):
             self.warn("Geological Angles already open")
             return
 
-        self.info("To implement")
-
-        # TO IMPLEMENT
+        angles_DockWidget = QDockWidget('Geological Angles', self.interface.mainWindow())
+        angles_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
+        angles_DockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
+        self.stereoplot_QWidget = angles_QWidget(self.canvas, self.plugin_name)
+        angles_DockWidget.setWidget(self.stereoplot_QWidget)
+        angles_DockWidget.destroyed.connect(self.closeEvent)
+        self.interface.addDockWidget(Qt.BottomDockWidgetArea, angles_DockWidget)
 
         self.is_anglecalc_widget_open = True
 
@@ -185,18 +187,18 @@ class geocouche_gui( object ):
 
     def info(self, msg):
         
-        QMessageBox.information( self.interface.mainWindow(),  self.plugin_name, msg )
+        QMessageBox.information(self.interface.mainWindow(),  self.plugin_name, msg)
         
         
-    def warn( self, msg):
+    def warn(self, msg):
     
-        QMessageBox.warning( self.interface.mainWindow(),  self.plugin_name, msg )
+        QMessageBox.warning(self.interface.mainWindow(),  self.plugin_name, msg)
         
                                
     def unload(self):
 
         #self.interface.removeToolBarIcon(self.stereoplot_QAction)
-        self.interface.removePluginMenu( "geocouche", self.stereoplot_QAction)
+        self.interface.removePluginMenu("geocouche", self.stereoplot_QAction)
      
         
                

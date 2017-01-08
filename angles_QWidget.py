@@ -6,25 +6,17 @@ import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-#from qgis.core import QgsMapLayerRegistry
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 
-from processing import plot_stereonet
-
        
-class geocouche_QWidget( QWidget ):
-    
-    
+class angles_QWidget(QWidget):
+
     input_plane_azimuth_types = ["dip dir.", "strike rhr"]
-    input_plane_dip_types = ["dip angle"]    
+    input_plane_dip_types = ["dip angle"]
 
-    input_line_azimuth_types = ["trend"]
-    input_line_dip_types = ["plunge"] 
-    
-    
-    def __init__( self, canvas, plugin_name ):
+    def __init__(self, canvas, plugin_name):
 
-        super( geocouche_QWidget, self ).__init__() 
+        super(angles_QWidget, self).__init__()
         self.mapcanvas = canvas        
         self.plugin_name = plugin_name
 
@@ -34,12 +26,12 @@ class geocouche_QWidget( QWidget ):
         self.setup_gui()
 
                       
-    def setup_gui( self ): 
+    def setup_gui(self): 
 
         self.dialog_layout = QHBoxLayout()
         
-        self.dialog_layout.addWidget( self.setup_inputdata() )
-        self.dialog_layout.addWidget( self.setup_processing() )        
+        self.dialog_layout.addWidget(self.setup_inputdata())
+        self.dialog_layout.addWidget(self.setup_processing())        
                                                            
         self.setLayout(self.dialog_layout)            
         self.adjustSize()               
@@ -53,8 +45,8 @@ class geocouche_QWidget( QWidget ):
         layout = QVBoxLayout() 
         
         self.define_point_layer_QPushButton = QPushButton(self.tr("Define point layer"))  
-        self.define_point_layer_QPushButton.clicked.connect( self.define_structural_input_params ) 
-        layout.addWidget(self.define_point_layer_QPushButton )
+        self.define_point_layer_QPushButton.clicked.connect(self.define_structural_input_params) 
+        layout.addWidget(self.define_point_layer_QPushButton)
         
         input_QGroupBox.setLayout(layout)
         
@@ -68,36 +60,36 @@ class geocouche_QWidget( QWidget ):
         layout = QGridLayout()
 
         self.plot_stereonet_QPushButton = QPushButton(self.tr("Plot stereonet"))          
-        self.plot_stereonet_QPushButton.clicked.connect( self.process_geodata )         
-        layout.addWidget(self.plot_stereonet_QPushButton, 0, 0, 1, 1 )
+        self.plot_stereonet_QPushButton.clicked.connect(self.process_geodata)         
+        layout.addWidget(self.plot_stereonet_QPushButton, 0, 0, 1, 1)
 
         processing_QGroupBox.setLayout(layout)
         
         return processing_QGroupBox
     
 
-    def define_structural_input_params( self ):
+    def define_structural_input_params(self):
         
         self.structural_input_params = None   
 
-        if len( loaded_point_layers()  ) == 0:
-            self.warn( "No available point layers" )
+        if len(loaded_point_layers()) == 0:
+            self.warn("No available point layers")
             return            
 
         dialog = SourcePointLayerDialog()
 
         if dialog.exec_():
             try:
-                point_layer, structural_input_params = self.get_structural_input_params( dialog )
+                point_layer, structural_input_params = self.get_structural_input_params(dialog)
             except:
-                self.warn( "Incorrect definition")
+                self.warn("Incorrect definition")
                 return 
         else:
-            self.warn( "Nothing defined")
+            self.warn("Nothing defined")
             return
 
-        if not self.formally_valid_params( structural_input_params ):
-            self.warn( "Invalid/incomplete parameters")
+        if not self.formally_valid_params(structural_input_params):
+            self.warn("Invalid/incomplete parameters")
             return
         else:
             self.info("Input data defined")
@@ -106,20 +98,16 @@ class geocouche_QWidget( QWidget ):
         self.structural_input_params = structural_input_params
 
 
-    def formally_valid_params(self, structural_input_params ):
+    def formally_valid_params(self, structural_input_params):
 
         if structural_input_params["plane_azimuth_name_field"] is not None and \
            structural_input_params["plane_dip_name_field"] is not None:
             return True
-        
-        if structural_input_params["line_azimuth_name_field"] is not None and \
-           structural_input_params["line_dip_name_field"] is not None:
-            return True
-        
+
         return False
 
 
-    def get_structural_input_params(self, dialog ):
+    def get_structural_input_params(self, dialog):
         
         point_layer = dialog.point_layer
         
@@ -130,21 +118,11 @@ class geocouche_QWidget( QWidget ):
             
         plane_dip_type = dialog.input_plane_orient_dip_type_QComboBox.currentText()        
         plane_dip_name_field = self.parse_field_choice(dialog.input_plane_dip_srcfld_QComboBox.currentText(), field_undefined_txt)       
-                    
-        line_azimuth_type = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
-        line_azimuth_name_field = self.parse_field_choice( dialog.input_line_azimuth_srcfld_QComboBox.currentText(), field_undefined_txt)
-                    
-        line_dip_type = dialog.input_line_orient_dip_type_QComboBox.currentText()        
-        line_dip_name_field = self.parse_field_choice( dialog.input_line_dip_srcfld_QComboBox.currentText(), field_undefined_txt)
-        
-        return point_layer, dict(plane_azimuth_type = plane_azimuth_type,
-                                plane_azimuth_name_field = plane_azimuth_name_field,
-                                plane_dip_type = plane_dip_type,
-                                plane_dip_name_field = plane_dip_name_field,
-                                line_azimuth_type = line_azimuth_type,
-                                line_azimuth_name_field = line_azimuth_name_field,
-                                line_dip_type = line_dip_type,
-                                line_dip_name_field = line_dip_name_field)
+
+        return point_layer, dict(plane_azimuth_type=plane_azimuth_type,
+                                 plane_azimuth_name_field=plane_azimuth_name_field,
+                                 plane_dip_type=plane_dip_type,
+                                 plane_dip_name_field=plane_dip_name_field)
     
 
     def parse_field_choice(self, val, choose_message):
@@ -160,9 +138,7 @@ class geocouche_QWidget( QWidget ):
         actual_field_names = []
         
         usable_fields = [self.structural_input_params["plane_azimuth_name_field"],
-                         self.structural_input_params["plane_dip_name_field"],
-                         self.structural_input_params["line_azimuth_name_field"],
-                         self.structural_input_params["line_dip_name_field"] ]
+                         self.structural_input_params["plane_dip_name_field"] ]
         
         for usable_fld in usable_fields:
             if usable_fld is not None:
@@ -186,25 +162,10 @@ class geocouche_QWidget( QWidget ):
             planar_data = False
             planar_az_type = None
             planar_dip_type = None
- 
-        # define type for linear data            
-        if self.structural_input_params["line_azimuth_name_field"] is not None and \
-           self.structural_input_params["line_dip_name_field"] is not None:            
-            linear_data = True
-            linear_az_type = "trend"
-            linear_dip_type = "plunge"  
-        else:
-            linear_data = False
-            linear_az_type = None
-            linear_dip_type = None
-                   
         
         return dict(planar_data = planar_data,
                     planar_az_type = planar_az_type,
-                    planar_dip_type = planar_dip_type,
-                    linear_data = linear_data,
-                    linear_az_type = linear_az_type,
-                    linear_dip_type = linear_dip_type)
+                    planar_dip_type = planar_dip_type)
         
         
     def process_geodata(self):
@@ -226,13 +187,11 @@ class geocouche_QWidget( QWidget ):
         input_data_types = self.get_actual_data_type()
            
         try:  
-            _, plane_orientations, lineament_orientations = self.parse_geodata(input_data_types, structural_data)  
+            _, plane_orientations = self.parse_geodata(input_data_types, structural_data)
         except Exception, msg:
             self.warn(str(msg))
             return
-        
-        plot_stereonet(plane_orientations, lineament_orientations)
-         
+
 
     def parse_geodata(self, input_data_types, structural_data):
         
@@ -247,22 +206,12 @@ class geocouche_QWidget( QWidget ):
                     dipdir_vals = [ val if val < 360.0 else val - 360.0 for val in dipdir_raw_vals ]
                 dipangle_vals = [ float(rec[3]) for rec in structural_data]
                 plane_vals = zip(dipdir_vals, dipangle_vals)
-                line_data_ndx_start = 4            
             else:
                 plane_vals = None
-                line_data_ndx_start = 2
         except:
             raise Exception, "Error in planar data"
-             
-        try:   
-            if input_data_types["linear_data"]:
-                line_vals = [ (float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in structural_data]
-            else:
-                line_vals = None     
-        except:
-            raise Exception, "Error in linear data"
-                    
-        return xy_vals, plane_vals, line_vals
+
+        return xy_vals, plane_vals
     
                   
     def open_help_page(self):
@@ -276,21 +225,21 @@ class geocouche_QWidget( QWidget ):
         
     def info(self, msg):
         
-        QMessageBox.information( self,  self.plugin_name, msg )
+        QMessageBox.information(self,  self.plugin_name, msg)
         
         
-    def warn( self, msg):
+    def warn(self, msg):
     
-        QMessageBox.warning( self,  self.plugin_name, msg )
+        QMessageBox.warning(self,  self.plugin_name, msg)
         
         
         
-class SourcePointLayerDialog( QDialog ):
+class SourcePointLayerDialog(QDialog):
     
     
     def __init__(self, parent=None):
                 
-        super( SourcePointLayerDialog, self ).__init__(parent)
+        super(SourcePointLayerDialog, self).__init__(parent)
         
         self.setup_gui()
         
@@ -319,14 +268,14 @@ class SourcePointLayerDialog( QDialog ):
         plane_QGridLayout = QGridLayout()    
 
         self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
-        self.input_plane_orient_azimuth_type_QComboBox.addItems(geocouche_QWidget.input_plane_azimuth_types)
+        self.input_plane_orient_azimuth_type_QComboBox.addItems(angles_QWidget.input_plane_azimuth_types)
         plane_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0,0,1,1)   
                 
         self.input_plane_azimuth_srcfld_QComboBox = QComboBox()
         plane_QGridLayout.addWidget(self.input_plane_azimuth_srcfld_QComboBox, 0,1,1,1)       
  
         self.input_plane_orient_dip_type_QComboBox = QComboBox()
-        self.input_plane_orient_dip_type_QComboBox.addItems(geocouche_QWidget.input_plane_dip_types)
+        self.input_plane_orient_dip_type_QComboBox.addItems(angles_QWidget.input_plane_dip_types)
         plane_QGridLayout.addWidget(self.input_plane_orient_dip_type_QComboBox, 1,0,1,1) 
         
         self.input_plane_dip_srcfld_QComboBox = QComboBox()
@@ -334,39 +283,13 @@ class SourcePointLayerDialog( QDialog ):
 
         plane_QGroupBox.setLayout(plane_QGridLayout)              
         layout.addWidget(plane_QGroupBox, 1,0,2,2)
-        
-
-        # line values
-        
-        line_QGroupBox = QGroupBox("Line orientation source fields")
-        line_QGridLayout = QGridLayout() 
-        
-        self.input_line_orient_azimuth_type_QComboBox = QComboBox()
-        self.input_line_orient_azimuth_type_QComboBox.addItems(geocouche_QWidget.input_line_azimuth_types)
-        line_QGridLayout.addWidget(self.input_line_orient_azimuth_type_QComboBox, 0,0,1,1)   
-                
-        self.input_line_azimuth_srcfld_QComboBox = QComboBox()
-        line_QGridLayout.addWidget(self.input_line_azimuth_srcfld_QComboBox, 0,1,1,1)    
-        
-        self.input_line_orient_dip_type_QComboBox = QComboBox()
-        self.input_line_orient_dip_type_QComboBox.addItems(geocouche_QWidget.input_line_dip_types)
-        line_QGridLayout.addWidget(self.input_line_orient_dip_type_QComboBox, 1,0,1,1) 
-        
-        self.input_line_dip_srcfld_QComboBox = QComboBox()
-        line_QGridLayout.addWidget(self.input_line_dip_srcfld_QComboBox, 1,1,1,1)         
- 
-        line_QGroupBox.setLayout(line_QGridLayout)              
-        layout.addWidget(line_QGroupBox, 3,0,2,2)
-         
  
         self.structural_comboxes = [self.input_plane_azimuth_srcfld_QComboBox,
-                                    self.input_plane_dip_srcfld_QComboBox,
-                                    self.input_line_azimuth_srcfld_QComboBox,
-                                    self.input_line_dip_srcfld_QComboBox ]                
+                                    self.input_plane_dip_srcfld_QComboBox]
                 
         self.refresh_struct_point_lyr_combobox()
         
-        self.input_layers_QComboBox.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes )
+        self.input_layers_QComboBox.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes)
         
         okButton = QPushButton("&OK")
         cancelButton = QPushButton("Cancel")
@@ -376,17 +299,16 @@ class SourcePointLayerDialog( QDialog ):
         buttonLayout.addWidget(okButton)
         buttonLayout.addWidget(cancelButton)
               
-        layout.addLayout( buttonLayout, 5, 0, 1, 2 )
+        layout.addLayout(buttonLayout, 3, 0, 1, 2)
         
-        self.setLayout( layout )
+        self.setLayout(layout)
 
         self.connect(okButton, SIGNAL("clicked()"),
-                     self,  SLOT("accept()") )
+                     self,  SLOT("accept()"))
         self.connect(cancelButton, SIGNAL("clicked()"),
                      self, SLOT("reject()"))
         
         self.setWindowTitle("Define point structural layer")
-
 
 
     def refresh_struct_point_lyr_combobox(self):
@@ -394,20 +316,20 @@ class SourcePointLayerDialog( QDialog ):
         self.pointLayers = loaded_point_layers()
         self.input_layers_QComboBox.clear()        
         
-        self.input_layers_QComboBox.addItem( self.layer_choose_msg )
-        self.input_layers_QComboBox.addItems( [ layer.name() for layer in self.pointLayers ] ) 
+        self.input_layers_QComboBox.addItem(self.layer_choose_msg)
+        self.input_layers_QComboBox.addItems([ layer.name() for layer in self.pointLayers ]) 
         
         self.reset_structural_field_comboboxes()
-         
-         
-    def reset_structural_field_comboboxes(self):        
+
+
+    def reset_structural_field_comboboxes(self):
         
         for structural_combox in self.structural_comboxes:
             structural_combox.clear()
             structural_combox.addItem(self.field_undefined_txt)
             
                      
-    def refresh_structural_fields_comboboxes( self ):
+    def refresh_structural_fields_comboboxes(self):
         
         self.reset_structural_field_comboboxes()
 
@@ -417,7 +339,7 @@ class SourcePointLayerDialog( QDialog ):
         
         self.point_layer = self.pointLayers[ point_shape_qgis_ndx ]
        
-        point_layer_field_list = self.point_layer.dataProvider().fields().toList( ) 
+        point_layer_field_list = self.point_layer.dataProvider().fields().toList() 
                
         field_names = [field.name() for field in point_layer_field_list]
         
