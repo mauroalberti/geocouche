@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/geocouche" >
-        <file>icon.png</file>	
+        <file>icons/stereoplot.png</file>
+        <file>icons/angle.svg</file>
     </qresource>
 </RCC>

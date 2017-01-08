@@ -6,8 +6,8 @@ import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from qgis.core import QgsMapLayerRegistry
-from geosurf.qgs_tools import loaded_point_layers, get_point_data
+#from qgis.core import QgsMapLayerRegistry
+from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 
 from processing import plot_stereonet
 
@@ -26,7 +26,11 @@ class geocouche_QWidget( QWidget ):
 
         super( geocouche_QWidget, self ).__init__() 
         self.mapcanvas = canvas        
-        self.plugin_name = plugin_name           
+        self.plugin_name = plugin_name
+
+        self.point_layer = None
+        self.structural_input_params = None
+
         self.setup_gui()
 
                       
@@ -66,14 +70,7 @@ class geocouche_QWidget( QWidget ):
         self.plot_stereonet_QPushButton = QPushButton(self.tr("Plot stereonet"))          
         self.plot_stereonet_QPushButton.clicked.connect( self.process_geodata )         
         layout.addWidget(self.plot_stereonet_QPushButton, 0, 0, 1, 1 )
-        
-        self.plot_all_data_QRadioButton = QRadioButton("all data")
-        self.plot_all_data_QRadioButton.setChecked(True)
-        layout.addWidget(self.plot_all_data_QRadioButton, 0,1,1,1)
 
-        self.plot_selected_data_QRadioButton = QRadioButton("selection")
-        layout.addWidget(self.plot_selected_data_QRadioButton, 0,2,1,1)
-                
         processing_QGroupBox.setLayout(layout)
         
         return processing_QGroupBox
@@ -100,7 +97,7 @@ class geocouche_QWidget( QWidget ):
             return
 
         if not self.formally_valid_params( structural_input_params ):
-            self.warn( "Invalid parameters")
+            self.warn( "Invalid/incomplete parameters")
             return
         else:
             self.info("Input data defined")
@@ -211,20 +208,20 @@ class geocouche_QWidget( QWidget ):
         
         
     def process_geodata(self):
-        
+
+        # check definition of input point layer
+        if self.point_layer is None or \
+           self.structural_input_params is None:
+            self.warn(str("Input point layer/parameters not defined"))
+            return
+
         # get used field names in the point attribute table 
         self.actual_field_names = self.get_actual_field_names()
         
         # get input data presence and type
         self.actual_data_type = self.get_actual_data_type()
-        
-        # decide if using all data or just selected ones
-        if self.plot_all_data_QRadioButton.isChecked():
-            selected = False
-        else:
-            selected = True  
-                 
-        _, structural_data = get_point_data(self.point_layer, self.actual_field_names, selected)
+
+        structural_data = pt_geoms_attrs(self.point_layer, self.actual_field_names)
         
         input_data_types = self.get_actual_data_type()
            
@@ -239,7 +236,7 @@ class geocouche_QWidget( QWidget ):
 
     def parse_geodata(self, input_data_types, structural_data):
         
-        xy_vals = [ (float(rec[0]), float(rec[1]) ) for rec in structural_data]
+        xy_vals = [(float(rec[0]), float(rec[1])) for rec in structural_data]
         
         try:
             if input_data_types["planar_data"]:            
