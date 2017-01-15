@@ -7,8 +7,7 @@ from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 from auxiliary_windows import StereoplotSrcPtLyrDia
 from processing import plot_stereonet
 from structural_userdefs import parse_stereoplot_geodata, formally_valid_stereoplot_params, \
-                                get_stereoplot_input_params, get_stereoplot_field_names, \
-                                get_stereoplot_data_type
+                                get_stereoplot_input_params, get_stereoplot_data_type
 
 
 class stereoplot_QWidget(QWidget):
@@ -100,16 +99,23 @@ class stereoplot_QWidget(QWidget):
             return
 
         # get used field names in the point attribute table
-        actual_field_names = get_stereoplot_field_names(self.stereoplot_input_params)
+        attitude_fldnms = [self.stereoplot_input_params["plane_azimuth_name_field"],
+                           self.stereoplot_input_params["plane_dip_name_field"],
+                           self.stereoplot_input_params["line_azimuth_name_field"],
+                           self.stereoplot_input_params["line_dip_name_field"]]
 
         # get input data presence and type
-        structural_data = pt_geoms_attrs(self.point_layer, actual_field_names)
+        structural_data = pt_geoms_attrs(self.point_layer, attitude_fldnms)
         input_data_types = get_stereoplot_data_type(self.stereoplot_input_params)
 
         try:
             _, plane_orientations, lineament_orientations = parse_stereoplot_geodata(input_data_types, structural_data)
         except Exception, msg:
             self.warn(str(msg))
+            return
+
+        if plane_orientations is None and lineament_orientations is None:
+            self.warn("No available structural data to plot")
             return
 
         plot_stereonet(plane_orientations, lineament_orientations)

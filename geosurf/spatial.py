@@ -5,10 +5,10 @@ from __future__ import division
 from math import sqrt, floor, ceil, sin, cos, tan, radians, asin, acos, atan, atan2, degrees, isnan
 import numpy as np
 import copy
-from .qgs_tools import project_qgs_point, qgs_point_2d
-from .utils import array_from_function, almost_zero
+from qgs_tools import project_qgs_point, qgs_point_2d
+from utils import array_from_function, almost_zero
 from array_utils import point_solution, formula_to_grid
-from .errors import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
+from errors import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
 
 MINIMUM_SEPARATION_THRESHOLD = 1e-10
 MINIMUM_VECTOR_MAGNITUDE = 1e-10
@@ -760,7 +760,13 @@ class CartesianVector3D(object):
     def vectors_cos_angle(self, another):
 
         try:
-            return self.scalar_product(another) / (self.length * another.length)
+            val = self.scalar_product(another) / (self.length * another.length)
+            if val > 1.0:
+                return 1.0
+            elif val < -1.0:
+                return -1.0
+            else:
+                return val
         except ZeroDivisionError:
             return np.nan
 
@@ -1282,6 +1288,25 @@ class GeolPlane(object):
         a, b, c = normal_versor.x, normal_versor.y, normal_versor.z
         d = - (a * point.p_x + b * point.p_y + c * point.p_z)
         return CartesianPlane(a, b, c, d)
+
+    def angle_degr(self, another):
+        """
+        calculate angle (in degrees) between two planes
+
+        >>> p1 = GeolPlane(100.0, 50.0)
+        >>> p1.angle_degr(p1)
+        0.0
+
+        >>> p2 = GeolPlane(0.0, 0.0)
+        >>> p3 = GeolPlane(300.0, 90.0)
+        >>> p2.angle_degr(p3)
+        90.0
+        """
+
+        vec0 = self.as_normalgeolaxis().versor_3d()
+        vec1 = another.as_normalgeolaxis().versor_3d()
+
+        return vec0.angle_degr(vec1)
 
 
 def eq_xy_pair(xy_pair_1, xy_pair_2):
@@ -2203,3 +2228,8 @@ def deformation_matrices(deform_params):
         deformation_matrices.append(deformation)
 
     return deformation_matrices
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

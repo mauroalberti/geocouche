@@ -7,7 +7,7 @@ from qgis.gui import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from .errors import VectorIOException
+from errors import VectorIOException
 
 
 

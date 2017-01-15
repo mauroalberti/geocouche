@@ -230,7 +230,7 @@ class AnglesSrcPtLyrDia(QDialog):
 
         self.targetatt_dipang_QDSBB = QDoubleSpinBox()
         self.targetatt_dipang_QDSBB.setMinimum(0.0)
-        self.targetatt_dipang_QDSBB.setMaximum(89.9)
+        self.targetatt_dipang_QDSBB.setMaximum(90.0)
         self.targetatt_dipang_QDSBB.setDecimals(1)
         tplane_QGridLayout.addWidget(self.targetatt_dipang_QDSBB, 0, 3, 1, 1)
 
@@ -306,7 +306,6 @@ class AnglesSrcPtLyrDia(QDialog):
 
         for structural_combox in self.structural_comboxes:
             structural_combox.addItems(field_names)
-
 
     def selectOutputVectorFile(self):
 

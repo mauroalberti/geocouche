@@ -24,12 +24,10 @@ def formally_valid_stereoplot_params(structural_input_params):
 
 def formally_valid_angles_params(structural_input_params):
 
-    if structural_input_params["plane_azimuth_name_field"] is not None and \
-                    structural_input_params["plane_dip_name_field"] is not None:
-        return True
-    else:
-        return False
-
+    for param_key in structural_input_params:
+        if structural_input_params[param_key] is None:
+            return False
+    return True
 
 def get_stereoplot_input_params(dialog):
 
@@ -63,7 +61,6 @@ def get_stereoplot_input_params(dialog):
                              line_dip_name_field=line_dip_name_field)
 
 
-
 def get_anglecalc_input_params(dialog):
 
     point_layer = dialog.point_layer
@@ -78,39 +75,18 @@ def get_anglecalc_input_params(dialog):
     plane_dip_name_field = parse_field_choice(dialog.input_plane_dip_srcfld_QComboBox.currentText(),
                                                    field_undefined_txt)
 
+    target_dipdir = dialog.targetatt_dipdir_QDSB.value()
+    target_dipangle = dialog.targetatt_dipang_QDSBB.value()
+
+    output_shapefile_path = dialog.out_filename_QLEdit.text()
+
     return point_layer, dict(plane_azimuth_type=plane_azimuth_type,
                              plane_azimuth_name_field=plane_azimuth_name_field,
                              plane_dip_type=plane_dip_type,
-                             plane_dip_name_field=plane_dip_name_field)
-
-
-def get_stereoplot_field_names(stereoplot_input_params):
-    actual_field_names = []
-
-    usable_fields = [stereoplot_input_params["plane_azimuth_name_field"],
-                     stereoplot_input_params["plane_dip_name_field"],
-                     stereoplot_input_params["line_azimuth_name_field"],
-                     stereoplot_input_params["line_dip_name_field"]]
-
-    for usable_fld in usable_fields:
-        if usable_fld is not None:
-            actual_field_names.append(usable_fld)
-
-    return actual_field_names
-
-
-def get_angles_field_names(structural_input_params):
-
-    actual_field_names = []
-
-    usable_fields = [structural_input_params["plane_azimuth_name_field"],
-                     structural_input_params["plane_dip_name_field"]]
-
-    for usable_fld in usable_fields:
-        if usable_fld is not None:
-            actual_field_names.append(usable_fld)
-
-    return actual_field_names
+                             plane_dip_name_field=plane_dip_name_field,
+                             target_dipdir=target_dipdir,
+                             target_dipangle=target_dipangle,
+                             output_shapefile_path=output_shapefile_path)
 
 
 def get_stereoplot_data_type(stereoplot_input_params):

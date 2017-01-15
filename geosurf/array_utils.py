@@ -3,7 +3,7 @@ from __future__ import division
 from numpy import *  # general import for compatibility with formula input
 from numpy.linalg import svd
 
-from .errors import AnaliticSurfaceCalcException
+from errors import AnaliticSurfaceCalcException
 
 
 def point_solution(a_array, b_array):

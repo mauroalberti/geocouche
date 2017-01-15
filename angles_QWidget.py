@@ -4,10 +4,10 @@
 from PyQt4.QtGui import *
 
 from geosurf.qgs_tools import pt_geoms_attrs, loaded_point_layers
-from structural_userdefs import parse_stereoplot_geodata, get_angle_data_type
+from geosurf.spatial import GeolPlane
 from auxiliary_windows import AnglesSrcPtLyrDia
 from structural_userdefs import get_anglecalc_input_params, formally_valid_angles_params, \
-                                get_angles_field_names, parse_angles_geodata
+                                parse_angles_geodata, get_angle_data_type
 
 
 class angles_QWidget(QWidget):
@@ -98,19 +98,31 @@ class angles_QWidget(QWidget):
             return
 
         # get used field names in the point attribute table 
-        actual_field_names = get_angles_field_names(self.angles_input_params)
+        attitude_fldnms = [self.angles_input_params["plane_azimuth_name_field"],
+                           self.angles_input_params["plane_dip_name_field"]]
 
-        structural_data = pt_geoms_attrs(self.point_layer, actual_field_names)
-        
+        # get input data presence and type
+        structural_data = pt_geoms_attrs(self.point_layer, attitude_fldnms)
         input_data_types = get_angle_data_type(self.angles_input_params)
            
         try:  
-            _, plane_orientations = parse_angles_geodata(input_data_types, structural_data)
+            xy_coords, plane_orientations = parse_angles_geodata(input_data_types, structural_data)
         except Exception, msg:
             self.warn(str(msg))
             return
 
+        if plane_orientations is None:
+            self.warn("Plane orientations are not available")
+            return
 
+        target_plane_dipdir = self.angles_input_params["target_dipdir"]
+        target_plane_dipangle = self.angles_input_params["target_dipangle"]
+        trgt_geolplane = GeolPlane(target_plane_dipdir, target_plane_dipangle)
+        angles = []
+        for plane_or in plane_orientations:
+            angles.append(trgt_geolplane.angle_degr(GeolPlane(*plane_or)))
+
+        #output_shapefile =
 
     def info(self, msg):
         
