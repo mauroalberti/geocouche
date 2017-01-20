@@ -564,7 +564,7 @@ def shapefile_create(path, geom_type, fields_dict_list, crs=None):
 
     outShapefile = driver.CreateDataSource(str(path))
     if outShapefile is None:
-        raise OGRIOException, 'Unable to save shapefile in provided path'
+        raise OGRIOException('Unable to save shapefile in provided path')
 
     if crs is not None:
         spatialReference = osr.SpatialReference()
@@ -612,14 +612,18 @@ def ogr_get_solution_shapefile(path, fields_dict_list):
     return outShapefile, outShapelayer, prev_solution_list
 
 
-def ogr_write_point_result(point_shapelayer, field_list, rec_values_list2):
+def ogr_write_point_result(point_shapelayer, field_list, rec_values_list2, geom_type=ogr.wkbPoint25D):
+
     outshape_featdef = point_shapelayer.GetLayerDefn()
 
     for rec_value_list in rec_values_list2:
 
         # pre-processing for new feature in output layer
-        curr_Pt_geom = ogr.Geometry(ogr.wkbPoint25D)
-        curr_Pt_geom.AddPoint(rec_value_list[1], rec_value_list[2], rec_value_list[3])
+        curr_Pt_geom = ogr.Geometry(geom_type)
+        if geom_type == ogr.wkbPoint25D:
+            curr_Pt_geom.AddPoint(rec_value_list[1], rec_value_list[2], rec_value_list[3])
+        else:
+            curr_Pt_geom.AddPoint(rec_value_list[1], rec_value_list[2])
 
         # create a new feature
         curr_Pt_shape = ogr.Feature(outshape_featdef)
