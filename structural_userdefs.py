@@ -10,7 +10,7 @@ def parse_field_choice(val, choose_message):
         return val
 
 
-def formally_valid_stereoplot_params(structural_input_params):
+def ptlayer_valid_params(structural_input_params):
 
     if structural_input_params["plane_azimuth_name_field"] is not None and \
                     structural_input_params["plane_dip_name_field"] is not None:
@@ -29,7 +29,8 @@ def formally_valid_angles_params(structural_input_params):
             return False
     return True
 
-def get_stereoplot_input_params(dialog):
+
+def get_input_ptlayer_params(dialog):
 
     point_layer = dialog.point_layer
 
@@ -59,6 +60,15 @@ def get_stereoplot_input_params(dialog):
                              line_azimuth_name_field=line_azimuth_name_field,
                              line_dip_type=line_dip_type,
                              line_dip_name_field=line_dip_name_field)
+
+
+def get_input_values_params(dialog):
+
+    plane_azimuth_type = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
+
+    values = dialog.input_values_QPlainTextEdit.toPlainText()
+
+    return plane_azimuth_type, values
 
 
 def get_anglecalc_input_params(dialog):

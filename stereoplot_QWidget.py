@@ -4,10 +4,11 @@ from PyQt4.QtGui import *
 
 
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
-from auxiliary_windows import StereoplotSrcPtLyrDia
+from auxiliary_windows import StereoplotSrcPtLyrDia, StereoplotSrcValuesDia
 from processing import plot_stereonet
-from structural_userdefs import parse_stereoplot_geodata, formally_valid_stereoplot_params, \
-                                get_stereoplot_input_params, get_stereoplot_data_type
+from structural_userdefs import parse_stereoplot_geodata, ptlayer_valid_params, \
+                                get_input_ptlayer_params, get_stereoplot_data_type, \
+                                get_input_values_params
 
 
 class stereoplot_QWidget(QWidget):
@@ -18,8 +19,8 @@ class stereoplot_QWidget(QWidget):
         self.mapcanvas = canvas
         self.plugin_name = plugin_name
 
-        self.point_layer = None
-        self.stereoplot_input_params = None
+        self.input_ptlayer = None
+        self.input_ptlayer_params = None
 
         self.setup_gui()
 
@@ -40,9 +41,13 @@ class stereoplot_QWidget(QWidget):
 
         layout = QVBoxLayout()
 
-        self.define_point_layer_QPushButton = QPushButton(self.tr("Define point layer"))
-        self.define_point_layer_QPushButton.clicked.connect(self.user_define_stereoplot_inparams)
+        self.define_point_layer_QPushButton = QPushButton(self.tr("Point layer"))
+        self.define_point_layer_QPushButton.clicked.connect(self.define_pointlayer_params)
         layout.addWidget(self.define_point_layer_QPushButton)
+
+        self.define_values_QPushButton = QPushButton(self.tr("Numeric values"))
+        self.define_values_QPushButton.clicked.connect(self.define_numvalues_params)
+        layout.addWidget(self.define_values_QPushButton)
 
         input_QGroupBox.setLayout(layout)
 
@@ -62,9 +67,9 @@ class stereoplot_QWidget(QWidget):
 
         return processing_QGroupBox
 
-    def user_define_stereoplot_inparams(self):
+    def define_pointlayer_params(self):
 
-        self.stereoplot_input_params = None
+        self.input_ptlayer_params = None
 
         if len(loaded_point_layers()) == 0:
             self.warn("No available point layers")
@@ -73,7 +78,7 @@ class stereoplot_QWidget(QWidget):
         dialog = StereoplotSrcPtLyrDia()
         if dialog.exec_():
             try:
-                point_layer, structural_input_params = get_stereoplot_input_params(dialog)
+                input_ptlayer, input_ptlayer_params = get_input_ptlayer_params(dialog)
             except:
                 self.warn("Incorrect definition")
                 return
@@ -81,32 +86,32 @@ class stereoplot_QWidget(QWidget):
             self.warn("Nothing defined")
             return
 
-        if not formally_valid_stereoplot_params(structural_input_params):
+        if not ptlayer_valid_params(input_ptlayer_params):
             self.warn("Invalid/incomplete parameters")
             return
         else:
             self.info("Input data defined")
 
-        self.point_layer = point_layer
-        self.stereoplot_input_params = structural_input_params
+        self.input_ptlayer = input_ptlayer
+        self.input_ptlayer_params = input_ptlayer_params
 
     def plot_stereoplot(self):
 
         # check definition of input point layer
-        if self.point_layer is None or \
-           self.stereoplot_input_params is None:
+        if self.input_ptlayer is None or \
+           self.input_ptlayer_params is None:
             self.warn(str("Input point layer/parameters not defined"))
             return
 
         # get used field names in the point attribute table
-        attitude_fldnms = [self.stereoplot_input_params["plane_azimuth_name_field"],
-                           self.stereoplot_input_params["plane_dip_name_field"],
-                           self.stereoplot_input_params["line_azimuth_name_field"],
-                           self.stereoplot_input_params["line_dip_name_field"]]
+        attitude_fldnms = [self.input_ptlayer_params["plane_azimuth_name_field"],
+                           self.input_ptlayer_params["plane_dip_name_field"],
+                           self.input_ptlayer_params["line_azimuth_name_field"],
+                           self.input_ptlayer_params["line_dip_name_field"]]
 
         # get input data presence and type
-        structural_data = pt_geoms_attrs(self.point_layer, attitude_fldnms)
-        input_data_types = get_stereoplot_data_type(self.stereoplot_input_params)
+        structural_data = pt_geoms_attrs(self.input_ptlayer, attitude_fldnms)
+        input_data_types = get_stereoplot_data_type(self.input_ptlayer_params)
 
         try:
             _, plane_orientations, lineament_orientations = parse_stereoplot_geodata(input_data_types, structural_data)
@@ -119,6 +124,37 @@ class stereoplot_QWidget(QWidget):
             return
 
         plot_stereonet(plane_orientations, lineament_orientations)
+
+    def define_numvalues_params(self):
+
+        self.stereoplot_numvalues_params = None
+
+        dialog = StereoplotSrcValuesDia()
+        if dialog.exec_():
+            try:
+                plane_azimuth_type, values = get_input_values_params(dialog)
+            except:
+                self.warn("Incorrect definition")
+                return
+        else:
+            self.warn("Nothing defined")
+            return
+
+        self.warn("Processings to be implemented")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def info(self, msg):
 

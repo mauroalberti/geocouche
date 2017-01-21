@@ -14,19 +14,13 @@ input_line_azimuth_types = ["trend"]
 input_line_dip_types = ["plunge"]
 
 
-
-
-
-
 class StereoplotSrcPtLyrDia(QDialog):
-
 
     def __init__(self, parent=None):
 
         super(StereoplotSrcPtLyrDia, self).__init__(parent)
 
         self.setup_gui()
-
 
     def setup_gui(self):
 
@@ -156,6 +150,61 @@ class StereoplotSrcPtLyrDia(QDialog):
 
         for structural_combox in self.structural_comboxes:
             structural_combox.addItems(field_names)
+
+
+class StereoplotSrcValuesDia(QDialog):
+
+    def __init__(self, parent=None):
+        super(StereoplotSrcValuesDia, self).__init__(parent)
+
+        self.setup_gui()
+
+    def setup_gui(self):
+
+        self.layer_choose_msg = "choose"
+        self.field_undefined_txt = "---"
+
+        layout = QVBoxLayout()
+
+        # input values
+
+        values_QGroupBox = QGroupBox("Input values")
+        values_QGridLayout = QGridLayout()
+
+        values_QGridLayout.addWidget(QLabel("Type of azimuth"), 0, 0, 1, 1)
+        self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
+        self.input_plane_orient_azimuth_type_QComboBox.addItems(input_plane_azimuth_types)
+        values_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0, 1, 1, 1)
+
+
+        values_QGridLayout.addWidget(QLabel("Input is: azimuth, dip angle\ne.g.\n220,33\n145,59"), 1, 0, 1, 2)
+        self.input_values_QPlainTextEdit = QPlainTextEdit()
+        values_QGridLayout.addWidget(self.input_values_QPlainTextEdit, 2, 0, 5, 2)
+
+        values_QGroupBox.setLayout(values_QGridLayout)
+        layout.addWidget(values_QGroupBox)
+
+        # ok/cancel choices
+
+        okButton = QPushButton("&OK")
+        cancelButton = QPushButton("Cancel")
+
+        self.connect(okButton, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+
+        self.connect(cancelButton, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+
+        layout.addLayout(buttonLayout)
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("Define plane attitude values")
 
 
 class AnglesSrcPtLyrDia(QDialog):
