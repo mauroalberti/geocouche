@@ -153,11 +153,11 @@ class geocouche_gui(object):
 
         stereoplot_DockWidget = QDockWidget('Stereoplot', self.interface.mainWindow())
         stereoplot_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
-        stereoplot_DockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)        
+        stereoplot_DockWidget.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
         self.stereoplot_QWidget = stereoplot_QWidget(self.canvas, self.plugin_name)
         stereoplot_DockWidget.setWidget(self.stereoplot_QWidget)
         stereoplot_DockWidget.destroyed.connect(self.closeEvent)        
-        self.interface.addDockWidget(Qt.BottomDockWidgetArea, stereoplot_DockWidget)
+        self.interface.addDockWidget(Qt.RightDockWidgetArea, stereoplot_DockWidget)
                 
         self.is_stereoplot_widget_open = True
 

@@ -13,21 +13,36 @@ input_plane_dip_types = ["dip angle"]
 input_line_azimuth_types = ["trend"]
 input_line_dip_types = ["plunge"]
 
+layer_choose_msg = "choose"
+field_undefined_txt = "---"
 
-class StereoplotSrcPtLyrDia(QDialog):
+
+class StereoplotInputDialog(QDialog):
 
     def __init__(self, parent=None):
 
-        super(StereoplotSrcPtLyrDia, self).__init__(parent)
-
-        self.setup_gui()
-
-    def setup_gui(self):
-
-        self.layer_choose_msg = "choose"
-        self.field_undefined_txt = "---"
+        super(StereoplotInputDialog, self).__init__(parent)
 
         layout = QGridLayout()
+
+        tabWidget = QTabWidget()
+
+        self.layer_input_QW = self.setup_layer_input_gui()
+        self.layer_tab = tabWidget.addTab(self.layer_input_QW, "Layer")
+
+        self.text_input_QW = self.setup_text_input_gui()
+        self.text_tab = tabWidget.addTab(self.text_input_QW, "Text")
+
+        layout.addWidget(tabWidget, 0, 0, 1, 1)
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("Stereoplot input")
+
+    def setup_layer_input_gui(self):
+
+        layer_input_widget = QWidget()
+        layer_input_layout = QGridLayout()
 
         # input layer
 
@@ -38,7 +53,7 @@ class StereoplotSrcPtLyrDia(QDialog):
         layer_QGridLayout.addWidget(self.input_layers_QComboBox, 0, 0, 1, 2)
 
         layer_QGroupBox.setLayout(layer_QGridLayout)
-        layout.addWidget(layer_QGroupBox, 0, 0, 1, 2)
+        layer_input_layout.addWidget(layer_QGroupBox, 0, 0, 1, 2)
 
         # plane values
 
@@ -47,21 +62,20 @@ class StereoplotSrcPtLyrDia(QDialog):
 
         self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
         self.input_plane_orient_azimuth_type_QComboBox.addItems(input_plane_azimuth_types)
-        plane_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0,0,1,1)
+        plane_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0, 0, 1, 1)
 
         self.input_plane_azimuth_srcfld_QComboBox = QComboBox()
-        plane_QGridLayout.addWidget(self.input_plane_azimuth_srcfld_QComboBox, 0,1,1,1)
+        plane_QGridLayout.addWidget(self.input_plane_azimuth_srcfld_QComboBox, 0, 1, 1, 1)
 
         self.input_plane_orient_dip_type_QComboBox = QComboBox()
         self.input_plane_orient_dip_type_QComboBox.addItems(input_plane_dip_types)
-        plane_QGridLayout.addWidget(self.input_plane_orient_dip_type_QComboBox, 1,0,1,1)
+        plane_QGridLayout.addWidget(self.input_plane_orient_dip_type_QComboBox, 1, 0, 1, 1)
 
         self.input_plane_dip_srcfld_QComboBox = QComboBox()
-        plane_QGridLayout.addWidget(self.input_plane_dip_srcfld_QComboBox, 1,1,1,1)
+        plane_QGridLayout.addWidget(self.input_plane_dip_srcfld_QComboBox, 1, 1, 1, 1)
 
         plane_QGroupBox.setLayout(plane_QGridLayout)
-        layout.addWidget(plane_QGroupBox, 1,0,2,2)
-
+        layer_input_layout.addWidget(plane_QGroupBox, 1, 0, 2, 2)
 
         # line values
 
@@ -70,30 +84,29 @@ class StereoplotSrcPtLyrDia(QDialog):
 
         self.input_line_orient_azimuth_type_QComboBox = QComboBox()
         self.input_line_orient_azimuth_type_QComboBox.addItems(input_line_azimuth_types)
-        line_QGridLayout.addWidget(self.input_line_orient_azimuth_type_QComboBox, 0,0,1,1)
+        line_QGridLayout.addWidget(self.input_line_orient_azimuth_type_QComboBox, 0, 0, 1, 1)
 
         self.input_line_azimuth_srcfld_QComboBox = QComboBox()
-        line_QGridLayout.addWidget(self.input_line_azimuth_srcfld_QComboBox, 0,1,1,1)
+        line_QGridLayout.addWidget(self.input_line_azimuth_srcfld_QComboBox, 0, 1, 1, 1)
 
         self.input_line_orient_dip_type_QComboBox = QComboBox()
         self.input_line_orient_dip_type_QComboBox.addItems(input_line_dip_types)
-        line_QGridLayout.addWidget(self.input_line_orient_dip_type_QComboBox, 1,0,1,1)
+        line_QGridLayout.addWidget(self.input_line_orient_dip_type_QComboBox, 1, 0, 1, 1)
 
         self.input_line_dip_srcfld_QComboBox = QComboBox()
-        line_QGridLayout.addWidget(self.input_line_dip_srcfld_QComboBox, 1,1,1,1)
+        line_QGridLayout.addWidget(self.input_line_dip_srcfld_QComboBox, 1, 1, 1, 1)
 
         line_QGroupBox.setLayout(line_QGridLayout)
-        layout.addWidget(line_QGroupBox, 3,0,2,2)
-
+        layer_input_layout.addWidget(line_QGroupBox, 3, 0, 2, 2)
 
         self.structural_comboxes = [self.input_plane_azimuth_srcfld_QComboBox,
                                     self.input_plane_dip_srcfld_QComboBox,
                                     self.input_line_azimuth_srcfld_QComboBox,
-                                    self.input_line_dip_srcfld_QComboBox ]
+                                    self.input_line_dip_srcfld_QComboBox]
 
         self.refresh_struct_point_lyr_combobox()
 
-        self.input_layers_QComboBox.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes )
+        self.input_layers_QComboBox.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes)
 
         okButton = QPushButton("&OK")
         cancelButton = QPushButton("Cancel")
@@ -103,68 +116,22 @@ class StereoplotSrcPtLyrDia(QDialog):
         buttonLayout.addWidget(okButton)
         buttonLayout.addWidget(cancelButton)
 
-        layout.addLayout( buttonLayout, 5, 0, 1, 2 )
+        layer_input_layout.addLayout(buttonLayout, 5, 0, 1, 2)
 
-        self.setLayout( layout )
+        layer_input_widget.setLayout(layer_input_layout)
 
         self.connect(okButton, SIGNAL("clicked()"),
-                     self,  SLOT("accept()") )
+                     self,  SLOT("accept()"))
         self.connect(cancelButton, SIGNAL("clicked()"),
                      self, SLOT("reject()"))
 
-        self.setWindowTitle("Define point structural layer")
+        return layer_input_widget
 
+    def setup_text_input_gui(self):
 
+        text_input_widget = QWidget()
 
-    def refresh_struct_point_lyr_combobox(self):
-
-        self.pointLayers = loaded_point_layers()
-        self.input_layers_QComboBox.clear()
-
-        self.input_layers_QComboBox.addItem( self.layer_choose_msg )
-        self.input_layers_QComboBox.addItems( [ layer.name() for layer in self.pointLayers ] )
-
-        self.reset_structural_field_comboboxes()
-
-
-    def reset_structural_field_comboboxes(self):
-
-        for structural_combox in self.structural_comboxes:
-            structural_combox.clear()
-            structural_combox.addItem(self.field_undefined_txt)
-
-
-    def refresh_structural_fields_comboboxes( self ):
-
-        self.reset_structural_field_comboboxes()
-
-        point_shape_qgis_ndx = self.input_layers_QComboBox.currentIndex() - 1
-        if point_shape_qgis_ndx == -1:
-            return
-
-        self.point_layer = self.pointLayers[ point_shape_qgis_ndx ]
-
-        point_layer_field_list = self.point_layer.dataProvider().fields().toList( )
-
-        field_names = [field.name() for field in point_layer_field_list]
-
-        for structural_combox in self.structural_comboxes:
-            structural_combox.addItems(field_names)
-
-
-class StereoplotSrcValuesDia(QDialog):
-
-    def __init__(self, parent=None):
-        super(StereoplotSrcValuesDia, self).__init__(parent)
-
-        self.setup_gui()
-
-    def setup_gui(self):
-
-        self.layer_choose_msg = "choose"
-        self.field_undefined_txt = "---"
-
-        layout = QVBoxLayout()
+        text_input_layout = QVBoxLayout()
 
         # input values
 
@@ -176,13 +143,12 @@ class StereoplotSrcValuesDia(QDialog):
         self.input_plane_orient_azimuth_type_QComboBox.addItems(input_plane_azimuth_types)
         values_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0, 1, 1, 1)
 
-
         values_QGridLayout.addWidget(QLabel("Input is: azimuth, dip angle\ne.g.\n220,33\n145,59"), 1, 0, 1, 2)
         self.input_values_QPlainTextEdit = QPlainTextEdit()
         values_QGridLayout.addWidget(self.input_values_QPlainTextEdit, 2, 0, 5, 2)
 
         values_QGroupBox.setLayout(values_QGridLayout)
-        layout.addWidget(values_QGroupBox)
+        text_input_layout.addWidget(values_QGroupBox)
 
         # ok/cancel choices
 
@@ -200,12 +166,99 @@ class StereoplotSrcValuesDia(QDialog):
         buttonLayout.addWidget(okButton)
         buttonLayout.addWidget(cancelButton)
 
-        layout.addLayout(buttonLayout)
+        text_input_layout.addLayout(buttonLayout)
 
-        self.setLayout(layout)
+        text_input_widget.setLayout(text_input_layout)
+
+        return text_input_widget
+
+    def refresh_struct_point_lyr_combobox(self):
+
+        self.pointLayers = loaded_point_layers()
+        self.input_layers_QComboBox.clear()
+
+        self.input_layers_QComboBox.addItem(layer_choose_msg)
+        self.input_layers_QComboBox.addItems([layer.name() for layer in self.pointLayers])
+
+        self.reset_structural_field_comboboxes()
+
+    def reset_structural_field_comboboxes(self):
+
+        for structural_combox in self.structural_comboxes:
+            structural_combox.clear()
+            structural_combox.addItem(field_undefined_txt)
+
+    def refresh_structural_fields_comboboxes(self):
+
+        self.reset_structural_field_comboboxes()
+
+        point_shape_qgis_ndx = self.input_layers_QComboBox.currentIndex() - 1
+        if point_shape_qgis_ndx == -1:
+            return
+
+        self.point_layer = self.pointLayers[point_shape_qgis_ndx]
+
+        point_layer_field_list = self.point_layer.dataProvider().fields().toList()
+
+        field_names = [field.name() for field in point_layer_field_list]
+
+        for structural_combox in self.structural_comboxes:
+            structural_combox.addItems(field_names)
+
+"""
+class StereoplotSrcValuesDia(QDialog):
+
+    def __init__(self, parent=None):
+        super(StereoplotSrcValuesDia, self).__init__(parent)
+
+        self.setup_text_input_gui()
+
+    def setup_text_input_gui(self):
+
+        self.layer_choose_msg = "choose"
+        self.field_undefined_txt = "---"
+
+        text_input_layout = QVBoxLayout()
+
+        # input values
+
+        values_QGroupBox = QGroupBox("Input values")
+        values_QGridLayout = QGridLayout()
+
+        values_QGridLayout.addWidget(QLabel("Type of azimuth"), 0, 0, 1, 1)
+        self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
+        self.input_plane_orient_azimuth_type_QComboBox.addItems(input_plane_azimuth_types)
+        values_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0, 1, 1, 1)
+
+        values_QGridLayout.addWidget(QLabel("Input is: azimuth, dip angle\ne.g.\n220,33\n145,59"), 1, 0, 1, 2)
+        self.input_values_QPlainTextEdit = QPlainTextEdit()
+        values_QGridLayout.addWidget(self.input_values_QPlainTextEdit, 2, 0, 5, 2)
+
+        values_QGroupBox.setLayout(values_QGridLayout)
+        text_input_layout.addWidget(values_QGroupBox)
+
+        # ok/cancel choices
+
+        okButton = QPushButton("&OK")
+        cancelButton = QPushButton("Cancel")
+
+        self.connect(okButton, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+
+        self.connect(cancelButton, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+
+        text_input_layout.addLayout(buttonLayout)
+
+        self.setLayout(text_input_layout)
 
         self.setWindowTitle("Define plane attitude values")
-
+"""
 
 class AnglesSrcPtLyrDia(QDialog):
 
@@ -216,9 +269,6 @@ class AnglesSrcPtLyrDia(QDialog):
         self.setup_gui()
 
     def setup_gui(self):
-
-        self.layer_choose_msg = "choose"
-        self.field_undefined_txt = "---"
 
         layout = QVBoxLayout()
 
@@ -328,7 +378,7 @@ class AnglesSrcPtLyrDia(QDialog):
         self.pointLayers = loaded_point_layers()
         self.input_layers_QComboBox.clear()
 
-        self.input_layers_QComboBox.addItem(self.layer_choose_msg)
+        self.input_layers_QComboBox.addItem(layer_choose_msg)
         self.input_layers_QComboBox.addItems([layer.name() for layer in self.pointLayers])
 
         self.reset_structural_field_comboboxes()
@@ -337,7 +387,7 @@ class AnglesSrcPtLyrDia(QDialog):
 
         for structural_combox in self.structural_comboxes:
             structural_combox.clear()
-            structural_combox.addItem(self.field_undefined_txt)
+            structural_combox.addItem(field_undefined_txt)
 
     def refresh_structural_fields_comboboxes(self):
 

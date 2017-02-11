@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 from qgis.gui import QgsColorButtonV2
 
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
-from auxiliary_windows import StereoplotSrcPtLyrDia, StereoplotSrcValuesDia
+from auxiliary_windows import StereoplotInputDialog
 from processing import plot_new_stereonet, add_to_stereonet
 from structural_userdefs import parse_ptlayer_geodata, ptlayer_valid_params, \
                                 get_input_ptlayer_params, get_ptlayer_stereoplot_data_type, \
@@ -28,15 +28,61 @@ class stereoplot_QWidget(QWidget):
 
     def setup_gui(self):
 
-        self.dialog_layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
 
+        self.define_input_QPB = QPushButton(self.tr("Input"))
+        self.define_input_QPB.clicked.connect(self.define_input)
+        self.layout.addWidget(self.define_input_QPB)
+
+        self.define_plotas_QPB = QPushButton(self.tr("Plot as"))
+        self.define_plotas_QPB.clicked.connect(self.define_plot_as)
+        self.layout.addWidget(self.define_plotas_QPB)
+
+        self.define_style_QPB = QPushButton(self.tr("Style"))
+        self.define_style_QPB.clicked.connect(self.define_style)
+        self.layout.addWidget(self.define_style_QPB)
+
+        self.define_stereoplot_QPB = QPushButton(self.tr("Stereoplot"))
+        self.define_stereoplot_QPB.clicked.connect(self.define_stereoplot)
+        self.layout.addWidget(self.define_stereoplot_QPB)
+
+        """
+        DEAD CODE - to remove unused methods:
         self.dialog_layout.addWidget(self.setup_inputdata())
         self.dialog_layout.addWidget(self.setup_styling())
         self.dialog_layout.addWidget(self.setup_plotting())
+        """
 
-        self.setLayout(self.dialog_layout)
+        self.setLayout(self.layout)
         self.adjustSize()
         self.setWindowTitle(self.plugin_name)
+
+
+    def define_input(self):
+
+        dialog = StereoplotInputDialog()
+        if dialog.exec_():
+            try:
+                pass
+                #input_ptlayer, input_ptlayer_params = get_input_ptlayer_params(dialog)
+            except:
+                self.warn("Incorrect definition")
+                return
+        else:
+            return
+
+
+    def define_plot_as(self):
+        pass
+
+
+    def define_style(self):
+        pass
+
+
+    def define_stereoplot(self):
+        pass
+
 
     def setup_inputdata(self):
 
@@ -111,7 +157,7 @@ class stereoplot_QWidget(QWidget):
             self.warn("No available point layers")
             return
 
-        dialog = StereoplotSrcPtLyrDia()
+        dialog = StereoplotInputDialog()
         if dialog.exec_():
             try:
                 input_ptlayer, input_ptlayer_params = get_input_ptlayer_params(dialog)
@@ -159,7 +205,7 @@ class stereoplot_QWidget(QWidget):
         else:
             self.plane_orientations, self.lineament_orientations = plane_orientations, lineament_orientations
                        
-
+    """
     def define_numvalues_params(self):
 
             self.plane_orientations = None
@@ -183,7 +229,7 @@ class stereoplot_QWidget(QWidget):
             else:
                 self.plane_orientations = attachment
                 self.info("Input data defined")
-
+    """
 
     def get_color_transparency(self):
 
