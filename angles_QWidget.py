@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from osgeo import ogr
@@ -15,6 +15,8 @@ from structural_userdefs import get_anglecalc_input_params, formally_valid_angle
 
 class angles_QWidget(QWidget):
 
+    window_closed = pyqtSignal()
+
     def __init__(self, canvas, plugin_name):
 
         super(angles_QWidget, self).__init__()
@@ -28,14 +30,14 @@ class angles_QWidget(QWidget):
 
     def setup_gui(self): 
 
-        self.dialog_layout = QHBoxLayout()
+        self.layout = QHBoxLayout()
         
-        self.dialog_layout.addWidget(self.setup_inputdata())
-        self.dialog_layout.addWidget(self.setup_processing())        
+        self.layout.addWidget(self.setup_inputdata())
+        self.layout.addWidget(self.setup_processing())
                                                            
-        self.setLayout(self.dialog_layout)            
-        self.adjustSize()               
-        self.setWindowTitle(self.plugin_name)        
+        self.setLayout(self.layout)
+        self.setWindowTitle("Angles")
+        self.adjustSize()
 
     def setup_inputdata(self):
         
@@ -152,3 +154,11 @@ class angles_QWidget(QWidget):
     def warn(self, msg):
     
         QMessageBox.warning(self, self.plugin_name, msg)
+
+    def closeEvent(self, event):
+
+        settings = QSettings("www.malg.eu", "geocouche")
+        settings.setValue("angles_QWidget/Size", self.size())
+        settings.setValue("angles_QWidget/Position", self.pos())
+
+        self.window_closed.emit()

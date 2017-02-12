@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.gui import QgsColorButtonV2
 
@@ -13,9 +14,12 @@ from structural_userdefs import parse_ptlayer_geodata, ptlayer_valid_params, \
 
 class stereoplot_QWidget(QWidget):
 
+    window_closed = pyqtSignal()
+
     def __init__(self, canvas, plugin_name):
 
         super(stereoplot_QWidget, self).__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose, False)
         self.mapcanvas = canvas
         self.plugin_name = plugin_name
 
@@ -47,16 +51,15 @@ class stereoplot_QWidget(QWidget):
         self.layout.addWidget(self.define_stereoplot_QPB)
 
         """
-        DEAD CODE - to remove unused methods:
+        unused methods to remove:
         self.dialog_layout.addWidget(self.setup_inputdata())
         self.dialog_layout.addWidget(self.setup_styling())
         self.dialog_layout.addWidget(self.setup_plotting())
         """
 
         self.setLayout(self.layout)
+        self.setWindowTitle("Stereonet")
         self.adjustSize()
-        self.setWindowTitle(self.plugin_name)
-
 
     def define_input(self):
 
@@ -71,18 +74,17 @@ class stereoplot_QWidget(QWidget):
         else:
             return
 
-
     def define_plot_as(self):
-        pass
 
+        pass
 
     def define_style(self):
-        pass
 
+        pass
 
     def define_stereoplot(self):
-        pass
 
+        pass
 
     def setup_inputdata(self):
 
@@ -129,7 +131,6 @@ class stereoplot_QWidget(QWidget):
         style_QGroupBox.setLayout(layout)
 
         return style_QGroupBox
-
 
     def setup_plotting(self):
 
@@ -238,7 +239,6 @@ class stereoplot_QWidget(QWidget):
         green = color.green() / 255.0
         blue = color.blue() / 255.0
         transparency = 1.0 - (float(self.transparency_QComboBox.currentText()[:-1]) / 100.0)
-        #color_name = "%d,%d,%d,%d" % (red, green, blue, transparency)
 
         return (red, green, blue), transparency
 
@@ -252,13 +252,11 @@ class stereoplot_QWidget(QWidget):
 
         self.current_stereoplot.show()
 
-
     def add_to_stereoplot(self):
 
         if self.current_stereoplot is None:
             self.warn("No already existing stereoplot")
             return
-
 
         color_name, transparency = self.get_color_transparency()
         add_to_stereonet(self.current_stereoplot,
@@ -277,6 +275,13 @@ class stereoplot_QWidget(QWidget):
 
         QMessageBox.warning(self, self.plugin_name, msg)
 
-        
+    def closeEvent(self, event):
+
+        settings = QSettings("www.malg.eu", "geocouche")
+        settings.setValue("stereplot_QWidget/Size", self.size())
+        settings.setValue("stereplot_QWidget/Position", self.pos())
+
+        self.window_closed.emit()
+
 
 

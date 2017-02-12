@@ -4,20 +4,35 @@ from PyQt4.QtCore import QSettings, QFileInfo
 from PyQt4.QtGui import QFileDialog
 
 
-# from module RASTERCALC by Barry Rowlingson    
-def lastUsedDir():
+
+def lastUsedDir(plugin_lastDir_QSettStr):
+    """
+    modified from module RASTERCALC by Barry Rowlingson
+
+    Args:
+        plugin_lastDir_QSettStr: string, e.g. "/qProf/lastDir"
+
+    Returns:
+        last plugin directory
+    """
+
     settings = QSettings()
-    return settings.value("/qProf/lastDir", "", type=str)
+    return settings.value(plugin_lastDir_QSettStr, "", type=str)
 
 
-# from module RASTERCALC by Barry Rowlingson
-def setLastUsedDir(lastDir):
+
+def setLastUsedDir(plugin_lastDir_QSettStr, lastDir):
+    """
+    modified from module RASTERCALC by Barry Rowlingson
+    """
+
     path = QFileInfo(lastDir).absolutePath()
     settings = QSettings()
-    settings.setValue("/qProf/lastDir", str(path))
+    settings.setValue(plugin_lastDir_QSettStr, str(path))
 
 
 def new_file_path(parent, show_msg, path, filter_text):
+
     output_filename = QFileDialog.getSaveFileName(parent,
                                                   show_msg,
                                                   path,
@@ -29,6 +44,7 @@ def new_file_path(parent, show_msg, path, filter_text):
 
 
 def old_file_path(parent, show_msg, filter_extension, filter_text):
+
     input_filename = QFileDialog.getOpenFileName(parent,
                                                  parent.tr(show_msg),
                                                  filter_extension,
