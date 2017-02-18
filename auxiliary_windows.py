@@ -205,6 +205,60 @@ class StereoplotInputDialog(QDialog):
         for structural_combox in self.structural_comboxes:
             structural_combox.addItems(field_names)
 
+
+class PlotTypeDialog(QDialog):
+
+    def __init__(self, parent=None):
+
+        super(PlotTypeDialog, self).__init__(parent)
+
+        layout = QVBoxLayout()
+
+        # planes
+        planes_QGroupBox = QGroupBox("Planes")
+        planes_layout = QGridLayout()
+        planes_layout.addWidget(QLabel("plot as"), 0, 0, 1, 1)
+        self.planes_greatcircles_QCheckBox = QCheckBox("Great circles")
+        self.planes_greatcircles_QCheckBox.setChecked(True)
+        planes_layout.addWidget(self.planes_greatcircles_QCheckBox, 0, 1, 1, 1)
+        self.planes_perpoles_QCheckBox = QCheckBox("Perpendicular poles")
+        planes_layout.addWidget(self.planes_perpoles_QCheckBox, 1, 1, 1, 1)
+        planes_QGroupBox.setLayout(planes_layout)
+        layout.addWidget(planes_QGroupBox)
+
+        # lines
+        lines_QGroupBox = QGroupBox("Lines")
+        lines_layout = QGridLayout()
+        lines_layout.addWidget(QLabel("plot as"), 0, 0, 1, 1)
+        self.lines_poles_QCheckBox = QCheckBox("Poles")
+        self.lines_poles_QCheckBox.setChecked(True)
+        lines_layout.addWidget(self.lines_poles_QCheckBox, 0, 1, 1, 1)
+        self.lines_perplanes_QCheckBox = QCheckBox("Perpendicular planes")
+        lines_layout.addWidget(self.lines_perplanes_QCheckBox, 1, 1, 1, 1)
+        lines_QGroupBox.setLayout(lines_layout)
+        layout.addWidget(lines_QGroupBox)
+
+        # ok/cancel stuff
+        okButton = QPushButton("&OK")
+        cancelButton = QPushButton("Cancel")
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+
+        layout.addLayout(buttonLayout)
+
+        self.connect(okButton, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+        self.connect(cancelButton, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("Plot type")
+
+
 """
 class StereoplotSrcValuesDia(QDialog):
 

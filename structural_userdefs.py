@@ -1,5 +1,6 @@
 
 from geosurf.qgs_tools import loaded_point_layers
+from auxiliary_windows import field_undefined_txt
 
 
 def parse_field_choice(val, choose_message):
@@ -55,27 +56,27 @@ def formally_valid_angles_params(structural_input_params):
 
 def get_input_ptlayer_params(dialog):
 
-    point_layer = dialog.point_layer
+    pt_layer_name = dialog.input_layers_QComboBox.currentText()
 
-    field_undefined_txt = dialog.field_undefined_txt
+    #field_undefined_txt = dialog.field_undefined_txt
 
     plane_azimuth_type = dialog.input_plane_orient_azimuth_type_QComboBox.currentText()
     plane_azimuth_name_field = parse_field_choice(dialog.input_plane_azimuth_srcfld_QComboBox.currentText(),
-                                                       field_undefined_txt)
+                                                  field_undefined_txt)
 
     plane_dip_type = dialog.input_plane_orient_dip_type_QComboBox.currentText()
     plane_dip_name_field = parse_field_choice(dialog.input_plane_dip_srcfld_QComboBox.currentText(),
-                                                   field_undefined_txt)
+                                              field_undefined_txt)
 
     line_azimuth_type = dialog.input_line_orient_azimuth_type_QComboBox.currentText()
     line_azimuth_name_field = parse_field_choice(dialog.input_line_azimuth_srcfld_QComboBox.currentText(),
-                                                      field_undefined_txt)
+                                                 field_undefined_txt)
 
     line_dip_type = dialog.input_line_orient_dip_type_QComboBox.currentText()
     line_dip_name_field = parse_field_choice(dialog.input_line_dip_srcfld_QComboBox.currentText(),
-                                                  field_undefined_txt)
+                                             field_undefined_txt)
 
-    return point_layer, dict(plane_azimuth_type=plane_azimuth_type,
+    return pt_layer_name, dict(plane_azimuth_type=plane_azimuth_type,
                              plane_azimuth_name_field=plane_azimuth_name_field,
                              plane_dip_type=plane_dip_type,
                              plane_dip_name_field=plane_dip_name_field,
