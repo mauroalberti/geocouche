@@ -9,3 +9,4 @@ State
  - [2017-01-22] implemented plot of planes via numeric input; creating a new stereoplot or adding to an existing one; choosing color and transparency for plane plots.
  - [2017-02-11] modifying the interface to accomodate vertical dockwidget with single choice buttons and created branch "new_interfaces"
  - [2017-02-12] implemented memory of last position for two main windows; stereoplot window has functions to be reimplemented, currently they do not work 
+ - [2017-02-18] implemented plot type definition
