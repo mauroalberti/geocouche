@@ -5,7 +5,7 @@ from PyQt4.QtGui import *
 from qgis.gui import QgsColorButtonV2
 
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
-from auxiliary_windows import StereoplotInputDialog, PlotTypeDialog
+from auxiliary_windows import StereoplotInputDialog, PlotTypeDialog, PlotStyleDialog
 from processing import plot_new_stereonet, add_to_stereonet
 from structural_userdefs import parse_ptlayer_geodata, ptlayer_valid_params, \
                                 get_input_ptlayer_params, get_ptlayer_stereoplot_data_type, \
@@ -32,6 +32,8 @@ class stereoplot_QWidget(QWidget):
                                plane_plot_perpoles=False,
                                line_plot_poles=True,
                                line_plot_perplanes=False)
+
+        self.plot_styles = dict()
 
         self.setup_gui()
 
@@ -87,7 +89,15 @@ class stereoplot_QWidget(QWidget):
 
     def define_style(self):
 
-        pass
+        dialog = PlotStyleDialog()
+        if dialog.exec_():
+            self.plot_styles["line_color"] = dialog.line_color_QgsColorButtonV2.color()
+            self.plot_styles["line_thickn"] = dialog.line_thickn_QComboBox.currentText()
+            self.plot_styles["line_transp"] = dialog.line_transp_QComboBox.currentText()
+
+            self.plot_styles["point_color"] = dialog.point_color_QgsColorButtonV2.color()
+            self.plot_styles["point_thickn"] = dialog.point_size_QComboBox.currentText()
+            self.plot_styles["point_transp"] = dialog.point_transp_QComboBox.currentText()
 
     def define_stereoplot(self):
 
@@ -122,8 +132,6 @@ class stereoplot_QWidget(QWidget):
         red, green, blue, alpha = map(int, self.color_name.split(","))
         self.linecolor_QgsColorButtonV2 = QgsColorButtonV2()
         self.linecolor_QgsColorButtonV2.setColor(QColor(red, green, blue, alpha))
-        #self.pencolor_QgsColorButtonV2.colorChanged['QColor'].connect(self.update_color_transparency)
-
         layout.addWidget(self.linecolor_QgsColorButtonV2)
         
         # transparency
@@ -132,7 +140,6 @@ class stereoplot_QWidget(QWidget):
         self.transparency_QComboBox = QComboBox()
         self.pen_transparencies_percent = [str(val) + "%" for val in pen_transparencies]
         self.transparency_QComboBox.insertItems(0, self.pen_transparencies_percent)
-        #self.transparency_QComboBox.currentIndexChanged['QString'].connect(self.update_color_transparency)
         layout.addWidget(self.transparency_QComboBox)
 
         style_QGroupBox.setLayout(layout)

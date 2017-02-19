@@ -2,7 +2,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-
+from qgis.gui import QgsColorButtonV2
 
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 
@@ -257,6 +257,110 @@ class PlotTypeDialog(QDialog):
         self.setLayout(layout)
 
         self.setWindowTitle("Plot type")
+
+
+class PlotStyleDialog(QDialog):
+
+    def __init__(self, parent=None):
+
+        super(PlotStyleDialog, self).__init__(parent)
+
+        self.color_name = '255,0,0,255'
+
+        layout = QVBoxLayout()
+
+        # great circle settings
+
+        greatcircles_QGroupBox = QGroupBox("Great circles")
+        greatcircles_layout = QHBoxLayout()
+
+        # line color
+
+        greatcircles_layout.addWidget(QLabel("Line color"))
+        red, green, blue, alpha = map(int, self.color_name.split(","))
+        self.line_color_QgsColorButtonV2 = QgsColorButtonV2()
+        self.line_color_QgsColorButtonV2.setColor(QColor(red, green, blue, alpha))
+        greatcircles_layout.addWidget(self.line_color_QgsColorButtonV2)
+
+        # line thickness
+
+        greatcircles_layout.addWidget(QLabel("Line thick."))
+        line_thickness = [1, 2, 3, 4]
+        self.line_thickn_QComboBox = QComboBox()
+        self.line_thickn_vals = [str(val) + " pt(s)" for val in line_thickness]
+        self.line_thickn_QComboBox.insertItems(0, self.line_thickn_vals)
+        greatcircles_layout.addWidget(self.line_thickn_QComboBox)
+
+        # line transparency
+
+        greatcircles_layout.addWidget(QLabel("Line transp."))
+        line_transparencies = [0, 25, 50, 75]
+        self.line_transp_QComboBox = QComboBox()
+        self.line_transp_percent_vals = [str(val) + "%" for val in line_transparencies]
+        self.line_transp_QComboBox.insertItems(0, self.line_transp_percent_vals)
+        # self.transparency_QComboBox.currentIndexChanged['QString'].connect(self.update_color_transparency)
+        greatcircles_layout.addWidget(self.line_transp_QComboBox)
+
+        # set/add to layout
+
+        greatcircles_QGroupBox.setLayout(greatcircles_layout)
+        layout.addWidget(greatcircles_QGroupBox)
+
+        # pole settings
+
+        poles_QGroupBox = QGroupBox("Poles")
+        poles_layout = QHBoxLayout()
+
+        # pole color
+
+        poles_layout.addWidget(QLabel("Pole color"))
+        red, green, blue, alpha = map(int, self.color_name.split(","))
+        self.point_color_QgsColorButtonV2 = QgsColorButtonV2()
+        self.point_color_QgsColorButtonV2.setColor(QColor(red, green, blue, alpha))
+        poles_layout.addWidget(self.point_color_QgsColorButtonV2)
+
+        # point size
+
+        poles_layout.addWidget(QLabel("Pole size"))
+        point_sizes = [1, 2, 3, 4, 5]
+        self.point_size_QComboBox = QComboBox()
+        self.point_size_vals = [str(val) + " pt(s)" for val in point_sizes]
+        self.point_size_QComboBox.insertItems(0, self.point_size_vals)
+        poles_layout.addWidget(self.point_size_QComboBox)
+
+        # point transparency
+
+        poles_layout.addWidget(QLabel("Pole transp."))
+        point_transparencies = [0, 25, 50, 75]
+        self.point_transp_QComboBox = QComboBox()
+        self.point_transp_percent_vals = [str(val) + "%" for val in point_transparencies]
+        self.point_transp_QComboBox.insertItems(0, self.point_transp_percent_vals)
+        poles_layout.addWidget(self.point_transp_QComboBox)
+
+        # set/add to layout
+
+        poles_QGroupBox.setLayout(poles_layout)
+        layout.addWidget(poles_QGroupBox)
+
+        # ok/cancel stuff
+        okButton = QPushButton("&OK")
+        cancelButton = QPushButton("Cancel")
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+
+        layout.addLayout(buttonLayout)
+
+        self.connect(okButton, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+        self.connect(cancelButton, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("Plot style")
 
 
 """
