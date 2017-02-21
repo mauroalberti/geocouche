@@ -5,7 +5,7 @@ from PyQt4.QtGui import *
 from qgis.gui import QgsColorButtonV2
 
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
-from auxiliary_windows import StereoplotInputDialog, PlotTypeDialog, PlotStyleDialog
+from auxiliary_windows import StereoplotInputDialog, PlotStyleDialog, PlotStereonetDialog
 from processing import plot_new_stereonet, add_to_stereonet
 from structural_userdefs import parse_ptlayer_geodata, ptlayer_valid_params, \
                                 get_input_ptlayer_params, get_ptlayer_stereoplot_data_type, \
@@ -41,19 +41,15 @@ class stereoplot_QWidget(QWidget):
 
         self.layout = QVBoxLayout()
 
-        self.define_input_QPB = QPushButton(self.tr("Input"))
+        self.define_input_QPB = QPushButton(self.tr("Input data"))
         self.define_input_QPB.clicked.connect(self.define_input)
         self.layout.addWidget(self.define_input_QPB)
 
-        self.define_plotas_QPB = QPushButton(self.tr("Plot as"))
-        self.define_plotas_QPB.clicked.connect(self.define_plot_as)
-        self.layout.addWidget(self.define_plotas_QPB)
-
-        self.define_style_QPB = QPushButton(self.tr("Style"))
+        self.define_style_QPB = QPushButton(self.tr("Plot style"))
         self.define_style_QPB.clicked.connect(self.define_style)
         self.layout.addWidget(self.define_style_QPB)
 
-        self.define_stereoplot_QPB = QPushButton(self.tr("Stereoplot"))
+        self.define_stereoplot_QPB = QPushButton(self.tr("Plot stereonet"))
         self.define_stereoplot_QPB.clicked.connect(self.define_stereoplot)
         self.layout.addWidget(self.define_stereoplot_QPB)
 
@@ -78,15 +74,6 @@ class stereoplot_QWidget(QWidget):
             except:
                 self.warn("Incorrect definition")
 
-    def define_plot_as(self):
-
-        dialog = PlotTypeDialog()
-        if dialog.exec_():
-            self.plot_types['plane_plot_greatcircle'] = dialog.planes_greatcircles_QCheckBox.isChecked()
-            self.plot_types['plane_plot_perpoles'] = dialog.planes_greatcircles_QCheckBox.isChecked()
-            self.plot_types['line_plot_poles'] = dialog.planes_greatcircles_QCheckBox.isChecked()
-            self.plot_types['line_plot_perplanes'] = dialog.planes_greatcircles_QCheckBox.isChecked()
-
     def define_style(self):
 
         dialog = PlotStyleDialog()
@@ -101,7 +88,16 @@ class stereoplot_QWidget(QWidget):
 
     def define_stereoplot(self):
 
-        pass
+        dialog = PlotStereonetDialog()
+
+        if dialog.exec_():
+            pass
+            """
+            self.plot_types['plane_plot_greatcircle'] = dialog.planes_greatcircles_QCheckBox.isChecked()
+            self.plot_types['plane_plot_perpoles'] = dialog.planes_greatcircles_QCheckBox.isChecked()
+            self.plot_types['line_plot_poles'] = dialog.planes_greatcircles_QCheckBox.isChecked()
+            self.plot_types['line_plot_perplanes'] = dialog.planes_greatcircles_QCheckBox.isChecked()
+            """
 
     def setup_inputdata(self):
 

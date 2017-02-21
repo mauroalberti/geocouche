@@ -46,7 +46,7 @@ class StereoplotInputDialog(QDialog):
 
         # input layer
 
-        layer_QGroupBox = QGroupBox("Input point layer")
+        layer_QGroupBox = QGroupBox("Point layer storing geological measures")
         layer_QGridLayout = QGridLayout()
 
         self.input_layers_QComboBox = QComboBox()
@@ -57,7 +57,7 @@ class StereoplotInputDialog(QDialog):
 
         # plane values
 
-        plane_QGroupBox = QGroupBox("Planar orientation source fields")
+        plane_QGroupBox = QGroupBox("Plane attitudes")
         plane_QGridLayout = QGridLayout()
 
         self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
@@ -79,7 +79,7 @@ class StereoplotInputDialog(QDialog):
 
         # line values
 
-        line_QGroupBox = QGroupBox("Line orientation source fields")
+        line_QGroupBox = QGroupBox("Axis attitudes")
         line_QGridLayout = QGridLayout()
 
         self.input_line_orient_azimuth_type_QComboBox = QComboBox()
@@ -206,59 +206,6 @@ class StereoplotInputDialog(QDialog):
             structural_combox.addItems(field_names)
 
 
-class PlotTypeDialog(QDialog):
-
-    def __init__(self, parent=None):
-
-        super(PlotTypeDialog, self).__init__(parent)
-
-        layout = QVBoxLayout()
-
-        # planes
-        planes_QGroupBox = QGroupBox("Planes")
-        planes_layout = QGridLayout()
-        planes_layout.addWidget(QLabel("plot as"), 0, 0, 1, 1)
-        self.planes_greatcircles_QCheckBox = QCheckBox("Great circles")
-        self.planes_greatcircles_QCheckBox.setChecked(True)
-        planes_layout.addWidget(self.planes_greatcircles_QCheckBox, 0, 1, 1, 1)
-        self.planes_perpoles_QCheckBox = QCheckBox("Perpendicular poles")
-        planes_layout.addWidget(self.planes_perpoles_QCheckBox, 1, 1, 1, 1)
-        planes_QGroupBox.setLayout(planes_layout)
-        layout.addWidget(planes_QGroupBox)
-
-        # lines
-        lines_QGroupBox = QGroupBox("Lines")
-        lines_layout = QGridLayout()
-        lines_layout.addWidget(QLabel("plot as"), 0, 0, 1, 1)
-        self.lines_poles_QCheckBox = QCheckBox("Poles")
-        self.lines_poles_QCheckBox.setChecked(True)
-        lines_layout.addWidget(self.lines_poles_QCheckBox, 0, 1, 1, 1)
-        self.lines_perplanes_QCheckBox = QCheckBox("Perpendicular planes")
-        lines_layout.addWidget(self.lines_perplanes_QCheckBox, 1, 1, 1, 1)
-        lines_QGroupBox.setLayout(lines_layout)
-        layout.addWidget(lines_QGroupBox)
-
-        # ok/cancel stuff
-        okButton = QPushButton("&OK")
-        cancelButton = QPushButton("Cancel")
-
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addStretch()
-        buttonLayout.addWidget(okButton)
-        buttonLayout.addWidget(cancelButton)
-
-        layout.addLayout(buttonLayout)
-
-        self.connect(okButton, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(cancelButton, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
-
-        self.setLayout(layout)
-
-        self.setWindowTitle("Plot type")
-
-
 class PlotStyleDialog(QDialog):
 
     def __init__(self, parent=None):
@@ -284,7 +231,7 @@ class PlotStyleDialog(QDialog):
 
         # line thickness
 
-        greatcircles_layout.addWidget(QLabel("Line thick."))
+        greatcircles_layout.addWidget(QLabel("Line width"))
         line_thickness = [1, 2, 3, 4]
         self.line_thickn_QComboBox = QComboBox()
         self.line_thickn_vals = [str(val) + " pt(s)" for val in line_thickness]
@@ -313,7 +260,7 @@ class PlotStyleDialog(QDialog):
 
         # pole color
 
-        poles_layout.addWidget(QLabel("Pole color"))
+        poles_layout.addWidget(QLabel("Point color"))
         red, green, blue, alpha = map(int, self.color_name.split(","))
         self.point_color_QgsColorButtonV2 = QgsColorButtonV2()
         self.point_color_QgsColorButtonV2.setColor(QColor(red, green, blue, alpha))
@@ -321,7 +268,7 @@ class PlotStyleDialog(QDialog):
 
         # point size
 
-        poles_layout.addWidget(QLabel("Pole size"))
+        poles_layout.addWidget(QLabel("Point size   "))
         point_sizes = [1, 2, 3, 4, 5]
         self.point_size_QComboBox = QComboBox()
         self.point_size_vals = [str(val) + " pt(s)" for val in point_sizes]
@@ -330,7 +277,7 @@ class PlotStyleDialog(QDialog):
 
         # point transparency
 
-        poles_layout.addWidget(QLabel("Pole transp."))
+        poles_layout.addWidget(QLabel("Point transp."))
         point_transparencies = [0, 25, 50, 75]
         self.point_transp_QComboBox = QComboBox()
         self.point_transp_percent_vals = [str(val) + "%" for val in point_transparencies]
@@ -361,6 +308,71 @@ class PlotStyleDialog(QDialog):
         self.setLayout(layout)
 
         self.setWindowTitle("Plot style")
+
+
+class PlotStereonetDialog(QDialog):
+
+    def __init__(self, parent=None):
+
+        super(PlotStereonetDialog, self).__init__(parent)
+
+        layout = QVBoxLayout()
+
+        plot_QGroupBox = QGroupBox("")
+
+        plot_layout = QGridLayout()
+
+        plot_layout.addWidget(QLabel("Plot in"), 0, 0, 1, 2)
+
+        self.stereonet_window_QComboBox = QComboBox()
+        self.stereonet_window_QComboBox.addItems(["new stereoplot", "previous stereoplot"])
+        plot_layout.addWidget(self.stereonet_window_QComboBox, 0, 2, 1, 1)
+
+        self.planes_QCheckBox = QCheckBox("planes")
+        self.planes_QCheckBox.setChecked(True)
+        plot_layout.addWidget(self.planes_QCheckBox, 1, 0, 1, 1)
+
+        plot_layout.addWidget(QLabel("as"), 1, 1, 1, 1)
+
+        self.planes_type_QComboBox = QComboBox()
+        self.planes_type_QComboBox.insertItems(0, ["great circles", "normal axes"])
+        plot_layout.addWidget(self.planes_type_QComboBox, 1, 2, 1, 1)
+
+        self.axes_QCheckBox = QCheckBox("axes")
+        self.axes_QCheckBox.setChecked(False)
+        plot_layout.addWidget(self.axes_QCheckBox, 2, 0, 1, 1)
+
+        plot_layout.addWidget(QLabel("as"), 2, 1, 1, 1)
+
+        self.axes_type_QComboBox = QComboBox()
+        self.axes_type_QComboBox.insertItems(0, ["poles", "perpendicular planes"])
+        plot_layout.addWidget(self.axes_type_QComboBox, 2, 2, 1, 1)
+
+        plot_QGroupBox.setLayout(plot_layout)
+
+        layout.addWidget(plot_QGroupBox)
+
+        # ok/cancel stuff
+
+        okButton = QPushButton("&OK")
+        cancelButton = QPushButton("Cancel")
+        self.connect(okButton, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+        self.connect(cancelButton, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+
+        layout.addLayout(buttonLayout)
+
+        # final settings
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("Stereonet plot")
 
 
 """
