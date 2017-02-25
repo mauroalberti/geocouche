@@ -8,7 +8,7 @@ from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 from auxiliary_windows import StereoplotInputDialog, PlotStyleDialog, PlotStereonetDialog
 from processing import plot_new_stereonet, add_to_stereonet
 from structural_userdefs import parse_ptlayer_geodata, ptlayer_valid_params, \
-                                get_input_ptlayer_params, get_ptlayer_stereoplot_data_type, \
+                                getInputPtLayerParams, get_ptlayer_stereoplot_data_type, \
                                 get_input_values_params, define_num_values
 
 
@@ -20,20 +20,20 @@ class stereoplot_QWidget(QWidget):
 
         super(stereoplot_QWidget, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, False)
-        self.mapcanvas = canvas
-        self.plugin_name = plugin_name
+        self.mapCanvas = canvas
+        self.pluginName = plugin_name
 
-        self.input_ptlayer = None
-        self.input_ptlayer_params = None
-        self.current_stereoplot = None
-        self.color_name = '255,0,0,255'
+        self.inputPtLayer = None
+        self.inputPtLayerParams = None
+        self.currStereoplot = None
+        self.tColorName = '255,0,0,255'
 
-        self.plot_types = dict(plane_plot_greatcircle=True,
+        self.dPlotTypes = dict(plane_plot_greatcircle=True,
                                plane_plot_perpoles=False,
                                line_plot_poles=True,
                                line_plot_perplanes=False)
 
-        self.plot_styles = dict()
+        self.dPlotStyles = dict()
 
         self.setup_gui()
 
@@ -41,17 +41,17 @@ class stereoplot_QWidget(QWidget):
 
         self.layout = QVBoxLayout()
 
-        self.define_input_QPB = QPushButton(self.tr("Input data"))
-        self.define_input_QPB.clicked.connect(self.define_input)
-        self.layout.addWidget(self.define_input_QPB)
+        self.pshDefineInput = QPushButton(self.tr("Input data"))
+        self.pshDefineInput.clicked.connect(self.define_input)
+        self.layout.addWidget(self.pshDefineInput)
 
-        self.define_style_QPB = QPushButton(self.tr("Plot style"))
-        self.define_style_QPB.clicked.connect(self.define_style)
-        self.layout.addWidget(self.define_style_QPB)
+        self.pshDefineStyle = QPushButton(self.tr("Plot style"))
+        self.pshDefineStyle.clicked.connect(self.define_style)
+        self.layout.addWidget(self.pshDefineStyle)
 
-        self.define_stereoplot_QPB = QPushButton(self.tr("Plot stereonet"))
-        self.define_stereoplot_QPB.clicked.connect(self.define_stereoplot)
-        self.layout.addWidget(self.define_stereoplot_QPB)
+        self.pshDefineStereoplot = QPushButton(self.tr("Plot stereonet"))
+        self.pshDefineStereoplot.clicked.connect(self.define_stereoplot)
+        self.layout.addWidget(self.pshDefineStereoplot)
 
         """
         unused methods to remove:
@@ -69,7 +69,7 @@ class stereoplot_QWidget(QWidget):
         dialog = StereoplotInputDialog()
         if dialog.exec_():
             try:
-                input_ptlayer_name, input_ptlayer_params = get_input_ptlayer_params(dialog)
+                input_ptlayer_name, input_ptlayer_params = getInputPtLayerParams(dialog)
                 self.info("Input defined")
             except:
                 self.warn("Incorrect definition")
@@ -78,13 +78,13 @@ class stereoplot_QWidget(QWidget):
 
         dialog = PlotStyleDialog()
         if dialog.exec_():
-            self.plot_styles["line_color"] = dialog.line_color_QgsColorButtonV2.color()
-            self.plot_styles["line_thickn"] = dialog.line_thickn_QComboBox.currentText()
-            self.plot_styles["line_transp"] = dialog.line_transp_QComboBox.currentText()
+            self.dPlotStyles["line_color"] = dialog.btnLineColor.color()
+            self.dPlotStyles["line_thickn"] = dialog.cmbLineThickn.currentText()
+            self.dPlotStyles["line_transp"] = dialog.cmbLineTransp.currentText()
 
-            self.plot_styles["point_color"] = dialog.point_color_QgsColorButtonV2.color()
-            self.plot_styles["point_thickn"] = dialog.point_size_QComboBox.currentText()
-            self.plot_styles["point_transp"] = dialog.point_transp_QComboBox.currentText()
+            self.dPlotStyles["point_color"] = dialog.btnPointColor.color()
+            self.dPlotStyles["point_thickn"] = dialog.cmbPointSize.currentText()
+            self.dPlotStyles["point_transp"] = dialog.cmbPointTransp.currentText()
 
     def define_stereoplot(self):
 
@@ -101,68 +101,68 @@ class stereoplot_QWidget(QWidget):
 
     def setup_inputdata(self):
 
-        input_QGroupBox = QGroupBox("Input")
+        grpInput = QGroupBox("Input")
 
         layout = QVBoxLayout()
 
-        self.define_point_layer_QPushButton = QPushButton(self.tr("Point layer"))
-        self.define_point_layer_QPushButton.clicked.connect(self.define_pointlayer_params)
-        layout.addWidget(self.define_point_layer_QPushButton)
+        self.pshDefinePointLayer = QPushButton(self.tr("Point layer"))
+        self.pshDefinePointLayer.clicked.connect(self.define_pt_layer_params)
+        layout.addWidget(self.pshDefinePointLayer)
 
-        self.define_values_QPushButton = QPushButton(self.tr("Numeric values"))
-        self.define_values_QPushButton.clicked.connect(self.define_numvalues_params)
-        layout.addWidget(self.define_values_QPushButton)
+        self.pshDefineValues = QPushButton(self.tr("Numeric values"))
+        self.pshDefineValues.clicked.connect(self.define_numvalues_params)
+        layout.addWidget(self.pshDefineValues)
 
-        input_QGroupBox.setLayout(layout)
+        grpInput.setLayout(layout)
 
-        return input_QGroupBox
+        return grpInput
 
     def setup_styling(self):
 
-        style_QGroupBox = QGroupBox(self)
-        style_QGroupBox.setTitle("Style")
+        grpStyle = QGroupBox(self)
+        grpStyle.setTitle("Style")
         layout = QHBoxLayout()
 
         # color
         layout.addWidget(QLabel("Color"))
-        red, green, blue, alpha = map(int, self.color_name.split(","))
-        self.linecolor_QgsColorButtonV2 = QgsColorButtonV2()
-        self.linecolor_QgsColorButtonV2.setColor(QColor(red, green, blue, alpha))
-        layout.addWidget(self.linecolor_QgsColorButtonV2)
+        red, green, blue, alpha = map(int, self.tColorName.split(","))
+        self.btnLineColor = QgsColorButtonV2()
+        self.btnLineColor.setColor(QColor(red, green, blue, alpha))
+        layout.addWidget(self.btnLineColor)
         
         # transparency
         layout.addWidget(QLabel("Transp."))
-        pen_transparencies = [0, 25, 50, 75]
-        self.transparency_QComboBox = QComboBox()
-        self.pen_transparencies_percent = [str(val) + "%" for val in pen_transparencies]
-        self.transparency_QComboBox.insertItems(0, self.pen_transparencies_percent)
-        layout.addWidget(self.transparency_QComboBox)
+        lPenTransparencies = [0, 25, 50, 75]
+        self.cmbTransparency = QComboBox()
+        self.lPenTransparenciesPrcnt = [str(val) + "%" for val in lPenTransparencies]
+        self.cmbTransparency.insertItems(0, self.lPenTransparenciesPrcnt)
+        layout.addWidget(self.cmbTransparency)
 
-        style_QGroupBox.setLayout(layout)
+        grpStyle.setLayout(layout)
 
-        return style_QGroupBox
+        return grpStyle
 
     def setup_plotting(self):
 
-        processing_QGroupBox = QGroupBox("Plotting")
+        grpPlotting = QGroupBox("Plotting")
 
         layout = QGridLayout()
 
-        self.plot_new_stereonet_QPushButton = QPushButton(self.tr("New stereonet"))
-        self.plot_new_stereonet_QPushButton.clicked.connect(self.plot_new_stereoplot)
-        layout.addWidget(self.plot_new_stereonet_QPushButton, 0, 0, 1, 1)
+        self.pshPlotNewStereonet = QPushButton(self.tr("New stereonet"))
+        self.pshPlotNewStereonet.clicked.connect(self.plot_new_stereoplot)
+        layout.addWidget(self.pshPlotNewStereonet, 0, 0, 1, 1)
 
-        self.add_to_stereonet_QPushButton = QPushButton(self.tr("Add to existing"))
-        self.add_to_stereonet_QPushButton.clicked.connect(self.add_to_stereoplot)
-        layout.addWidget(self.add_to_stereonet_QPushButton, 1, 0, 1, 1)
+        self.pshAddToStereonet = QPushButton(self.tr("Add to existing"))
+        self.pshAddToStereonet.clicked.connect(self.add_to_stereoplot)
+        layout.addWidget(self.pshAddToStereonet, 1, 0, 1, 1)
 
-        processing_QGroupBox.setLayout(layout)
+        grpPlotting.setLayout(layout)
 
-        return processing_QGroupBox
+        return grpPlotting
 
-    def define_pointlayer_params(self):
+    def define_pt_layer_params(self):
 
-        self.input_ptlayer_params = None
+        self.inputPtLayerParams = None
 
         if len(loaded_point_layers()) == 0:
             self.warn("No available point layers")
@@ -171,7 +171,7 @@ class stereoplot_QWidget(QWidget):
         dialog = StereoplotInputDialog()
         if dialog.exec_():
             try:
-                input_ptlayer, input_ptlayer_params = get_input_ptlayer_params(dialog)
+                input_ptlayer, input_ptlayer_params = getInputPtLayerParams(dialog)
             except:
                 self.warn("Incorrect definition")
                 return
@@ -185,24 +185,24 @@ class stereoplot_QWidget(QWidget):
         else:
             self.info("Input data defined")
 
-        self.input_ptlayer = input_ptlayer
-        self.input_ptlayer_params = input_ptlayer_params
+        self.inputPtLayer = input_ptlayer
+        self.inputPtLayerParams = input_ptlayer_params
 
         # check definition of input point layer
-        if self.input_ptlayer is None or \
-                        self.input_ptlayer_params is None:
+        if self.inputPtLayer is None or \
+                        self.inputPtLayerParams is None:
             self.warn(str("Input point layer/parameters not defined"))
             return
         
         # get used field names in the point attribute table
-        attitude_fldnms = [self.input_ptlayer_params["plane_azimuth_name_field"],
-                           self.input_ptlayer_params["plane_dip_name_field"],
-                           self.input_ptlayer_params["line_azimuth_name_field"],
-                           self.input_ptlayer_params["line_dip_name_field"]]
+        attitude_fldnms = [self.inputPtLayerParams["plane_azimuth_name_field"],
+                           self.inputPtLayerParams["plane_dip_name_field"],
+                           self.inputPtLayerParams["line_azimuth_name_field"],
+                           self.inputPtLayerParams["line_dip_name_field"]]
         
         # get input data presence and type
-        structural_data = pt_geoms_attrs(self.input_ptlayer, attitude_fldnms)
-        input_data_types = get_ptlayer_stereoplot_data_type(self.input_ptlayer_params)
+        structural_data = pt_geoms_attrs(self.inputPtLayer, attitude_fldnms)
+        input_data_types = get_ptlayer_stereoplot_data_type(self.inputPtLayerParams)
         
         try:
             _, plane_orientations, lineament_orientations = parse_ptlayer_geodata(input_data_types, structural_data)
@@ -244,46 +244,46 @@ class stereoplot_QWidget(QWidget):
 
     def get_color_transparency(self):
 
-        color = self.linecolor_QgsColorButtonV2.color()
+        color = self.btnLineColor.color()
         red = color.red() / 255.0
         green = color.green() / 255.0
         blue = color.blue() / 255.0
-        transparency = 1.0 - (float(self.transparency_QComboBox.currentText()[:-1]) / 100.0)
+        transparency = 1.0 - (float(self.cmbTransparency.currentText()[:-1]) / 100.0)
 
         return (red, green, blue), transparency
 
     def plot_new_stereoplot(self):
 
         color_name, transparency = self.get_color_transparency()
-        self.current_stereoplot = plot_new_stereonet(self.plane_orientations, 
-                                                     self.lineament_orientations,
-                                                     color_name,
-                                                     transparency)
+        self.currStereoplot = plot_new_stereonet(self.plane_orientations,
+                                                 self.lineament_orientations,
+                                                 color_name,
+                                                 transparency)
 
-        self.current_stereoplot.show()
+        self.currStereoplot.show()
 
     def add_to_stereoplot(self):
 
-        if self.current_stereoplot is None:
+        if self.currStereoplot is None:
             self.warn("No already existing stereoplot")
             return
 
         color_name, transparency = self.get_color_transparency()
-        add_to_stereonet(self.current_stereoplot,
+        add_to_stereonet(self.currStereoplot,
                          self.plane_orientations,
                          self.lineament_orientations,
                          color_name,
                          transparency)
 
-        self.current_stereoplot.show()
+        self.currStereoplot.show()
 
     def info(self, msg):
 
-        QMessageBox.information(self, self.plugin_name, msg)
+        QMessageBox.information(self, self.pluginName, msg)
 
     def warn(self, msg):
 
-        QMessageBox.warning(self, self.plugin_name, msg)
+        QMessageBox.warning(self, self.pluginName, msg)
 
     def closeEvent(self, event):
 

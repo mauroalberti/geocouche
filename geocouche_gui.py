@@ -27,7 +27,7 @@ from PyQt4.QtGui import *
 import resources
 
 from stereoplot_QWidget import stereoplot_QWidget
-from angles_QWidget import angles_QWidget
+from AnglesWidget import AnglesWidget
 
 
 class geocouche_gui(object):
@@ -169,17 +169,17 @@ class geocouche_gui(object):
         #angles_DockWidget = QDockWidget('Geological Angles', self.interface.mainWindow())
         #angles_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
         #angles_DockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
-        self.angles_QWidget = angles_QWidget(self.canvas, self.plugin_name)
-        self.angles_QWidget.window_closed.connect(self.angles_off)
+        self.angles_QWidget = AnglesWidget(self.canvas, self.plugin_name)
+        self.angles_QWidget.sgnWindowClosed.connect(self.angles_off)
 
         #angles_DockWidget.setWidget(self.stereoplot_QWidget)
         #angles_DockWidget.destroyed.connect(self.closeEvent)
         #self.interface.addDockWidget(Qt.BottomDockWidgetArea, angles_DockWidget)
 
         settings = QSettings("www.malg.eu", "geocouche")
-        if settings.contains("angles_QWidget/Size") and settings.contains("angles_QWidget/Position"):
-            size = settings.value("angles_QWidget/Size", None)
-            pos = settings.value("angles_QWidget/Position", None)
+        if settings.contains("AnglesWidget/Size") and settings.contains("AnglesWidget/Position"):
+            size = settings.value("AnglesWidget/Size", None)
+            pos = settings.value("AnglesWidget/Position", None)
             self.angles_QWidget.resize(size)
             self.angles_QWidget.move(pos)
             self.angles_QWidget.show()
