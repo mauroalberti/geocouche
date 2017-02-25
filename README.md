@@ -12,3 +12,5 @@ State
  - [2017-02-18] implemented plot type definition
  - [2017-02-19] implemented plot style definition
  - [2017-02-21] implemented stereoplot window definition
+ - [2017-02-25] naming convention changed
+ 
