@@ -19,12 +19,14 @@ tFieldUndefined = "---"
 
 class StereoplotInputDialog(QDialog):
 
-    def __init__(self, parent=None):
+
+
+    def __init__(self, llyrLoadedPointLayers, parent=None):
 
         super(StereoplotInputDialog, self).__init__(parent)
+        self.llyrLoadedPointLayers = llyrLoadedPointLayers
 
         layout = QGridLayout()
-
         tabWdgt = QTabWidget()
 
         self.wdgtLayerInput = self.setup_layer_input_gui()
@@ -104,7 +106,7 @@ class StereoplotInputDialog(QDialog):
                                     self.cmbInputLineAzimSrcFld,
                                     self.cmbInputLineDipSrcFld]
 
-        self.refresh_struct_point_lyr_combobox()
+        self.refresh_struct_point_lyr_combobox(self.llyrLoadedPointLayers)
 
         self.cmbInputLayers.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes)
 
@@ -171,13 +173,12 @@ class StereoplotInputDialog(QDialog):
 
         return wdgtTextInput
 
-    def refresh_struct_point_lyr_combobox(self):
+    def refresh_struct_point_lyr_combobox(self, llyrLoadedPointLayers):
 
-        self.pointLayers = loaded_point_layers()
         self.cmbInputLayers.clear()
 
         self.cmbInputLayers.addItem(tLayerChooseMsg)
-        self.cmbInputLayers.addItems([layer.name() for layer in self.pointLayers])
+        self.cmbInputLayers.addItems([layer.name() for layer in llyrLoadedPointLayers])
 
         self.reset_structural_field_comboboxes()
 
@@ -195,9 +196,9 @@ class StereoplotInputDialog(QDialog):
         if point_shape_qgis_ndx == -1:
             return
 
-        self.point_layer = self.pointLayers[point_shape_qgis_ndx]
+        point_layer = self.llyrLoadedPointLayers[point_shape_qgis_ndx]
 
-        lPointLayerFields = self.point_layer.dataProvider().fields().toList()
+        lPointLayerFields = point_layer.dataProvider().fields().toList()
 
         ltFieldNames = [field.name() for field in lPointLayerFields]
 
@@ -323,32 +324,33 @@ class PlotStereonetDialog(QDialog):
 
         lytPlot.addWidget(QLabel("Plot in"), 0, 0, 1, 2)
 
+        # stereoplot, new or previous
+
         self.cmbStereonetFigure = QComboBox()
         self.cmbStereonetFigure.addItems(["new stereoplot", "previous stereoplot"])
         lytPlot.addWidget(self.cmbStereonetFigure, 0, 2, 1, 1)
 
+        # planes
+
         self.chkPlanes = QCheckBox("planes")
         self.chkPlanes.setChecked(True)
         lytPlot.addWidget(self.chkPlanes, 1, 0, 1, 1)
-
         lytPlot.addWidget(QLabel("as"), 1, 1, 1, 1)
-
         self.cmbPlanesType = QComboBox()
         self.cmbPlanesType.insertItems(0, ["great circles", "normal axes"])
         lytPlot.addWidget(self.cmbPlanesType, 1, 2, 1, 1)
 
+        # axes
+
         self.chkAxes = QCheckBox("axes")
         self.chkAxes.setChecked(False)
         lytPlot.addWidget(self.chkAxes, 2, 0, 1, 1)
-
         lytPlot.addWidget(QLabel("as"), 2, 1, 1, 1)
-
         self.cmbAxesType = QComboBox()
         self.cmbAxesType.insertItems(0, ["poles", "perpendicular planes"])
         lytPlot.addWidget(self.cmbAxesType, 2, 2, 1, 1)
 
         grpPlot.setLayout(lytPlot)
-
         layout.addWidget(grpPlot)
 
         # ok/cancel stuff

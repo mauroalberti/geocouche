@@ -3,24 +3,10 @@ from geosurf.qgs_tools import loaded_point_layers
 from auxiliary_windows import tFieldUndefined
 
 
-def parse_field_choice(val, choose_message):
-
-    if val == choose_message:
-        return None
-    else:
-        return val
 
 
-def ptlayer_valid_params(structural_input_params):
 
-    if structural_input_params["plane_azimuth_name_field"] is not None and \
-                    structural_input_params["plane_dip_name_field"] is not None:
-        return True
-    elif structural_input_params["line_azimuth_name_field"] is not None and \
-                    structural_input_params["line_dip_name_field"] is not None:
-        return True
-    else:
-        return False
+
 
 
 def get_geolval(row):
@@ -53,37 +39,6 @@ def formally_valid_angles_params(structural_input_params):
             return False
     return True
 
-
-def getInputPtLayerParams(dialog):
-
-    tPtLayerName = dialog.cmbInputLayers.currentText()
-
-    #field_undefined_txt = dialog.field_undefined_txt
-
-    plane_azimuth_type = dialog.cmbInputPlaneOrAzimType.currentText()
-    plane_azimuth_name_field = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
-                                                  tFieldUndefined)
-
-    plane_dip_type = dialog.cmbInputPlaneOrientDipType.currentText()
-    plane_dip_name_field = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
-                                              tFieldUndefined)
-
-    line_azimuth_type = dialog.cmbInputLineOrientAzimType.currentText()
-    line_azimuth_name_field = parse_field_choice(dialog.cmbInputLineAzimSrcFld.currentText(),
-                                                 tFieldUndefined)
-
-    line_dip_type = dialog.cmbInputLineOrientDipType.currentText()
-    line_dip_name_field = parse_field_choice(dialog.cmbInputLineDipSrcFld.currentText(),
-                                             tFieldUndefined)
-
-    return tPtLayerName, dict(plane_azimuth_type=plane_azimuth_type,
-                              plane_azimuth_name_field=plane_azimuth_name_field,
-                              plane_dip_type=plane_dip_type,
-                              plane_dip_name_field=plane_dip_name_field,
-                              line_azimuth_type=line_azimuth_type,
-                              line_azimuth_name_field=line_azimuth_name_field,
-                              line_dip_type=line_dip_type,
-                              line_dip_name_field=line_dip_name_field)
 
 
 def get_input_values_params(dialog):

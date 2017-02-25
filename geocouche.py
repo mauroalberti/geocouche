@@ -1,36 +1,37 @@
-# geocouche
-# QGIS plugin
-#
-#-----------------------------------------------------------
-#
-# licensed under the terms of GNU GPL 2
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-#---------------------------------------------------------------------
+"""
+/***************************************************************************
+ geocouche - plugin for Quantum GIS
+
+ geologic stereoplots
+-------------------
+
+    Begin                : 2015.04.18
+    Date                 : 2017.02.25
+    Copyright            : (C) 2015-2017 by Mauro Alberti
+    Email                : alberti dot m65 at gmail dot com
+
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+"""
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import resources
 
-from stereoplot_QWidget import stereoplot_QWidget
+from StereoplotWidget import StereoplotWidget
 from AnglesWidget import AnglesWidget
 
 
-class geocouche_gui(object):
+class Geocouche(object):
 
     # from RedLayers by E. Ferreguti
     def add_action(
@@ -104,7 +105,7 @@ class geocouche_gui(object):
 
         if add_to_menu:
             self.interface.addPluginToMenu(
-                self.plugin_name,
+                self.tPluginName,
                 action)
 
         if object_name is not None:
@@ -116,7 +117,7 @@ class geocouche_gui(object):
 
     def __init__(self, interface):
 
-        self.plugin_name = "geocouche"
+        self.tPluginName = "geocouche"
         self.interface = interface
         self.main_window = self.interface.mainWindow()
         self.canvas = self.interface.mapCanvas()
@@ -125,85 +126,85 @@ class geocouche_gui(object):
 
     def initGui(self):
 
-        self.stereoplot_QAction = self.add_action(
+        self.actStereoplot = self.add_action(
             ':/plugins/geocouche/icons/stereoplot.png',
-            text = u'Geologic stereoplots',
+            text='Geologic stereoplots',
             callback=self.open_stereoplot_widget,
             parent=self.interface.mainWindow())
-        self.is_stereoplot_widget_open = False
+        self.bStereoplotWidgetOpen = False
 
-        self.angles_QAction = self.add_action(
+        self.actAngles = self.add_action(
             ':/plugins/geocouche/icons/angle.svg',
-            text=u'Geologic angles',
+            text='Geologic angles',
             callback=self.open_cal_angles_widget,
             parent=self.interface.mainWindow())
-        self.is_angles_widget_open = False
+        self.bAnglesWidgetOpen = False
 
     def open_stereoplot_widget(self):
         
-        if self.is_stereoplot_widget_open:
+        if self.bStereoplotWidgetOpen:
             self.warn("Geologic stereoplots already open")
             return
 
-        self.stereoplot_QWidget = stereoplot_QWidget(self.canvas, self.plugin_name)
-        self.stereoplot_QWidget.window_closed.connect(self.stereoplot_off)
+        self.wdgtStereoplot = StereoplotWidget(self.canvas, self.tPluginName)
+        self.wdgtStereoplot.window_closed.connect(self.stereoplot_off)
 
-        settings = QSettings("www.malg.eu", "geocouche")
+        settings = QSettings("alberese", "geocouche")
         if settings.contains("stereplot_QWidget/Size") and settings.contains("stereplot_QWidget/Position"):
             size = settings.value("stereplot_QWidget/Size", None)
             pos = settings.value("stereplot_QWidget/Position", None)
-            self.stereoplot_QWidget.resize(size)
-            self.stereoplot_QWidget.move(pos)
-            self.stereoplot_QWidget.show()
+            self.wdgtStereoplot.resize(size)
+            self.wdgtStereoplot.move(pos)
+            self.wdgtStereoplot.show()
         else:
-            self.stereoplot_QWidget.show()
+            self.wdgtStereoplot.show()
 
-        self.is_stereoplot_widget_open = True
+        self.bStereoplotWidgetOpen = True
 
     def open_cal_angles_widget(self):
 
-        if self.is_angles_widget_open:
+        if self.bAnglesWidgetOpen:
             self.warn("Geological Angles already open")
             return
 
         #angles_DockWidget = QDockWidget('Geological Angles', self.interface.mainWindow())
         #angles_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
         #angles_DockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
-        self.angles_QWidget = AnglesWidget(self.canvas, self.plugin_name)
-        self.angles_QWidget.sgnWindowClosed.connect(self.angles_off)
+        self.wdgtAngles = AnglesWidget(self.canvas, self.tPluginName)
+        self.wdgtAngles.sgnWindowClosed.connect(self.angles_off)
 
-        #angles_DockWidget.setWidget(self.stereoplot_QWidget)
+        #angles_DockWidget.setWidget(self.StereoplotWidget)
         #angles_DockWidget.destroyed.connect(self.closeEvent)
         #self.interface.addDockWidget(Qt.BottomDockWidgetArea, angles_DockWidget)
 
-        settings = QSettings("www.malg.eu", "geocouche")
+        settings = QSettings("alberese", "geocouche")
         if settings.contains("AnglesWidget/Size") and settings.contains("AnglesWidget/Position"):
             size = settings.value("AnglesWidget/Size", None)
             pos = settings.value("AnglesWidget/Position", None)
-            self.angles_QWidget.resize(size)
-            self.angles_QWidget.move(pos)
-            self.angles_QWidget.show()
+            self.wdgtAngles.resize(size)
+            self.wdgtAngles.move(pos)
+            self.wdgtAngles.show()
         else:
-            self.angles_QWidget.show()
+            self.wdgtAngles.show()
 
-        self.is_angles_widget_open = True
+        self.bAnglesWidgetOpen = True
 
     def stereoplot_off(self):
 
-        self.is_stereoplot_widget_open = False
+        self.bStereoplotWidgetOpen = False
 
     def angles_off(self):
 
-        self.is_angles_widget_open = False
+        self.bAnglesWidgetOpen = False
 
     def info(self, msg):
         
-        QMessageBox.information(self.interface.mainWindow(),  self.plugin_name, msg)
+        QMessageBox.information(self.interface.mainWindow(), self.tPluginName, msg)
 
     def warn(self, msg):
     
-        QMessageBox.warning(self.interface.mainWindow(),  self.plugin_name, msg)
+        QMessageBox.warning(self.interface.mainWindow(), self.tPluginName, msg)
 
     def unload(self):
 
-        self.interface.removePluginMenu("geocouche", self.stereoplot_QAction)
+        self.interface.removePluginMenu("geocouche", self.actStereoplot)

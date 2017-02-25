@@ -1,11 +1,14 @@
 """
 /***************************************************************************
- geoStereoplot - plugin for Quantum GIS
+ geocouche - plugin for Quantum GIS
 
  geologic stereoplots
-                              -------------------
-        begin                : 2015.04.18
+-------------------
 
+    Begin                : 2015.04.18
+    Date                 : 2017.02.25
+    Copyright            : (C) 2015-2017 by Mauro Alberti
+    Email                : alberti dot m65 at gmail dot com
         
  ***************************************************************************/
 
@@ -19,13 +22,12 @@
  ***************************************************************************/
 """
 
+from geocouche import Geocouche
 
-from geocouche_gui import geocouche_gui
 
+def classFactory(iface):
 
-def classFactory(iface):    
-    # create qgSurf_gui class   
-    return geocouche_gui(iface)
+    return Geocouche(iface)
 
 
 
