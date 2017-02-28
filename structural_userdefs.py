@@ -78,41 +78,6 @@ def get_anglecalc_input_params(dialog):
                              output_shapefile_path=output_shapefile_path)
 
 
-def get_ptlayer_stereoplot_data_type(stereoplot_input_params):
-
-    # define type for planar data
-    if stereoplot_input_params["plane_azimuth_name_field"] is not None and \
-                    stereoplot_input_params["plane_dip_name_field"] is not None:
-        planar_data = True
-        if stereoplot_input_params["plane_azimuth_type"] == "dip dir.":
-            planar_az_type = "dip_dir"
-        elif stereoplot_input_params["plane_azimuth_type"] == "strike rhr":
-            planar_az_type = "strike_rhr"
-        planar_dip_type = "dip"
-    else:
-        planar_data = False
-        planar_az_type = None
-        planar_dip_type = None
-
-    # define type for linear data
-    if stereoplot_input_params["line_azimuth_name_field"] is not None and \
-                    stereoplot_input_params["line_dip_name_field"] is not None:
-        linear_data = True
-        linear_az_type = "trend"
-        linear_dip_type = "plunge"
-    else:
-        linear_data = False
-        linear_az_type = None
-        linear_dip_type = None
-
-    return dict(planar_data=planar_data,
-                planar_az_type=planar_az_type,
-                planar_dip_type=planar_dip_type,
-                linear_data=linear_data,
-                linear_az_type=linear_az_type,
-                linear_dip_type=linear_dip_type)
-
-
 def get_angle_data_type(structural_input_params):
 
     # define type for planar data
@@ -136,46 +101,10 @@ def get_angle_data_type(structural_input_params):
                 planar_dip_type=planar_dip_type)
 
 
-def format_azimuth_values(azimuths, az_type):
-
-    if az_type == "dip_dir":
-        offset = 0.0
-    elif az_type == "strike_rhr":
-        offset = 90.0
-    else:
-        raise Exception("Invalid azimuth data type")
-
-    return map(lambda val: (val + offset) % 360.0, azimuths)
 
 
-def parse_ptlayer_geodata(input_data_types, structural_data):
 
-    xy_vals = [(float(rec[0]), float(rec[1])) for rec in structural_data]
 
-    try:
-        if input_data_types["planar_data"]:
-            azimuths = [float(rec[2]) for rec in structural_data]
-            dipdir_vals = format_azimuth_values(azimuths,
-                                                input_data_types["planar_az_type"])
-            dipangle_vals = [float(rec[3]) for rec in structural_data]
-            plane_vals = zip(dipdir_vals, dipangle_vals)
-            line_data_ndx_start = 4
-        else:
-            plane_vals = None
-            line_data_ndx_start = 2
-    except Exception as e:
-        raise Exception("Error in planar data parsing: {}".format(e.message))
-
-    try:
-        if input_data_types["linear_data"]:
-            line_vals = [(float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in
-                         structural_data]
-        else:
-            line_vals = None
-    except Exception as e:
-        raise Exception("Error in linear data parsing: {}".format(e.message))
-
-    return xy_vals, plane_vals, line_vals
 
 
 def parse_angles_geodata(input_data_types, structural_data):
