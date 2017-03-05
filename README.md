@@ -14,3 +14,4 @@ State
  - [2017-02-21] implemented stereoplot window definition
  - [2017-02-25] naming convention changed
  - [2017-02-28] restored plot of planes from point layer using user-defined style 
+ - [2107-03-05] restored data input from text tab
