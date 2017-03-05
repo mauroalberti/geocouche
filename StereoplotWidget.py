@@ -26,7 +26,6 @@
 
 from apsg import *
 
-from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 from auxiliary_windows import *
 
 
@@ -40,20 +39,14 @@ class StereoplotWidget(QWidget):
         self.setAttribute(Qt.WA_DeleteOnClose, False)
         self.mapCanvas = canvas
         self.pluginName = plugin_name
-        self.dPlotStyles = dict()
-        self.inputPtLayerParams = dict()
 
-        """
-        self.inputPtLayer = None
-        self.inputPtLayerParams = None
-        self.currStereoplot = None
-        self.tColorName = '255,0,0,255'
-        self.dPlotTypes = dict(plane_plot_greatcircle=True,
-                               plane_plot_perpoles=False,
-                               line_plot_poles=True,
-                               line_plot_perplanes=False)
         self.dPlotStyles = dict()
-        """
+        self.dPlotStyles["line_color"] = 1., 0., 0.
+        self.dPlotStyles["line_thickn"] = 1.
+        self.dPlotStyles["line_opacity"] = 1.
+        self.dPlotStyles["point_color"] = 1., 0., 0.
+        self.dPlotStyles["point_size"] = 6.
+        self.dPlotStyles["point_opacity"] = 1.
 
         self.setup_gui()
 
@@ -87,71 +80,71 @@ class StereoplotWidget(QWidget):
             else:
                 return val
 
-        def ptlayer_valid_params():
+        def parse_azimuth_values(azimuths, az_type):
 
-            if self.inputPtLayerParams["plane_azimuth_name_field"] is not None and \
-                            self.inputPtLayerParams["plane_dip_name_field"] is not None:
+            if az_type == "dip_dir":
+                offset = 0.0
+            elif az_type == "strike_rhr":
+                offset = 90.0
+            else:
+                raise Exception("Invalid azimuth data type")
+
+            return map(lambda val: (val + offset) % 360.0, azimuths)
+
+        def layer_input_type_valid(dInputLayerParams):
+
+            if dInputLayerParams["plane_azimuth_name_field"] is not None and \
+              dInputLayerParams["plane_dip_name_field"] is not None:
                 return True
-            elif self.inputPtLayerParams["line_azimuth_name_field"] is not None and \
-                            self.inputPtLayerParams["line_dip_name_field"] is not None:
+            elif dInputLayerParams["axis_azimuth_name_field"] is not None and \
+              dInputLayerParams["axis_dip_name_field"] is not None:
                 return True
             else:
                 return False
 
-        def get_ptlayer_stereoplot_data_type(stereoplot_input_params):
+        def layer_input_type(dInputParams):
             # define type for planar data
 
-            if stereoplot_input_params["plane_azimuth_name_field"] is not None and \
-                            stereoplot_input_params["plane_dip_name_field"] is not None:
-                planar_data = True
-                if stereoplot_input_params["plane_azimuth_type"] == "dip dir.":
-                    planar_az_type = "dip_dir"
-                elif stereoplot_input_params["plane_azimuth_type"] == "strike rhr":
-                    planar_az_type = "strike_rhr"
-                planar_dip_type = "dip"
+            if dInputParams["plane_azimuth_name_field"] is not None and \
+                            dInputParams["plane_dip_name_field"] is not None:
+                plane_data = True
+                if dInputParams["plane_azimuth_type"] == "dip direction":
+                    plane_az_type = "dip_dir"
+                else:
+                    plane_az_type = "strike_rhr"
+                plane_dip_type = "dip"
             else:
-                planar_data = False
-                planar_az_type = None
-                planar_dip_type = None
+                plane_data = False
+                plane_az_type = None
+                plane_dip_type = None
 
             # define type for linear data
-            if stereoplot_input_params["line_azimuth_name_field"] is not None and \
-                            stereoplot_input_params["line_dip_name_field"] is not None:
-                linear_data = True
-                linear_az_type = "trend"
-                linear_dip_type = "plunge"
+            if dInputParams["axis_azimuth_name_field"] is not None and \
+                            dInputParams["axis_dip_name_field"] is not None:
+                axis_data = True
+                axis_az_type = "trend"
+                axis_dip_type = "plunge"
             else:
-                linear_data = False
-                linear_az_type = None
-                linear_dip_type = None
+                axis_data = False
+                axis_az_type = None
+                axis_dip_type = None
 
-            return dict(planar_data=planar_data,
-                        planar_az_type=planar_az_type,
-                        planar_dip_type=planar_dip_type,
-                        linear_data=linear_data,
-                        linear_az_type=linear_az_type,
-                        linear_dip_type=linear_dip_type)
+            return dict(plane_data=plane_data,
+                        plane_az_type=plane_az_type,
+                        plane_dip_type=plane_dip_type,
+                        axis_data=axis_data,
+                        axis_az_type=axis_az_type,
+                        axis_dip_type=axis_dip_type)
 
-        def parse_ptlayer_geodata(input_data_types, structural_data):
-
-            def format_azimuth_values(azimuths, az_type):
-
-                if az_type == "dip_dir":
-                    offset = 0.0
-                elif az_type == "strike_rhr":
-                    offset = 90.0
-                else:
-                    raise Exception("Invalid azimuth data type")
-
-                return map(lambda val: (val + offset) % 360.0, azimuths)
+        def orientations_from_layer(input_data_types, structural_data):
 
             xy_vals = [(float(rec[0]), float(rec[1])) for rec in structural_data]
 
             try:
-                if input_data_types["planar_data"]:
+                if input_data_types["plane_data"]:
                     azimuths = [float(rec[2]) for rec in structural_data]
-                    dipdir_vals = format_azimuth_values(azimuths,
-                                                        input_data_types["planar_az_type"])
+                    dipdir_vals = parse_azimuth_values(azimuths,
+                                                       input_data_types["plane_az_type"])
                     dipangle_vals = [float(rec[3]) for rec in structural_data]
                     plane_vals = zip(dipdir_vals, dipangle_vals)
                     line_data_ndx_start = 4
@@ -162,7 +155,7 @@ class StereoplotWidget(QWidget):
                 raise Exception("Error in planar data parsing: {}".format(e.message))
 
             try:
-                if input_data_types["linear_data"]:
+                if input_data_types["axis_data"]:
                     line_vals = [(float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in
                                  structural_data]
                 else:
@@ -172,67 +165,118 @@ class StereoplotWidget(QWidget):
 
             return xy_vals, plane_vals, line_vals
 
-        llyrLoadedPointLayers = loaded_point_layers()
-        if len(llyrLoadedPointLayers) == 0:
-            self.warn("No available point layers")
-            return
+        def orientations_from_text(data_type, azimuth_type, text, sep=','):
 
+            def extract_values(row):
+
+                def parse_plane_azim(az_raw):
+                    if azimuth_type == "strike rhr":
+                        az = az_raw + 90.0
+                    else:
+                        az = az_raw
+                    return az % 360.0
+
+                raw_values = row.split(sep)
+                if data_type == "planes":
+                    az, dip = map(float, raw_values)
+                    planes.append([parse_plane_azim(az), dip])
+                elif data_type == "axes":
+                    trend, plunge = map(float, raw_values)
+                    axes.append([trend, plunge])
+                else:
+                    az, dip, trend, plunge = map(float, raw_values)
+                    planes.append([parse_plane_azim(az), dip])
+                    axes.append([trend, plunge])
+
+            if text is None or text == '':
+                return False, "No value available"
+
+            lines = text.split("\n")
+            if len(lines) == 0:
+                return False, "No value available"
+
+            planes = []
+            axes = []
+            try:
+                map(extract_values, lines)
+                return True, (planes, axes)
+            except:
+                return False, "Error in input values"
+
+        llyrLoadedPointLayers = loaded_point_layers()
         dialog = StereoplotInputDialog(llyrLoadedPointLayers)
         if dialog.exec_():
-            try:
-                self.inputPtLayer = llyrLoadedPointLayers[dialog.cmbInputLayers.currentIndex() - 1]
-            except:
-                self.warn("Incorrect point layer choice")
-                return
-                
-            try:
-                self.inputPtLayerParams["plane_azimuth_type"] = dialog.cmbInputPlaneOrAzimType.currentText()
+            if dialog.tabWdgt.currentIndex() == 0:
+                try:
+                    lyrInputLayer = llyrLoadedPointLayers[dialog.cmbInputLayers.currentIndex() - 1]
+                except:
+                    self.warn("Incorrect point layer choice")
+                    return
+                dInputLayerParams = dict()
+                try:
+                    dInputLayerParams["plane_azimuth_type"] = dialog.cmbInputPlaneOrAzimType.currentText()
 
-                self.inputPtLayerParams["plane_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
-                                                                                         tFieldUndefined)
-
-                self.inputPtLayerParams["plane_dip_type"] = dialog.cmbInputPlaneOrientDipType.currentText()
-                self.inputPtLayerParams["plane_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
-                                                                                     tFieldUndefined)
-
-                self.inputPtLayerParams["line_azimuth_type"] = dialog.cmbInputLineOrientAzimType.currentText()
-                self.inputPtLayerParams["line_azimuth_name_field"] = parse_field_choice(dialog.cmbInputLineAzimSrcFld.currentText(),
+                    dInputLayerParams["plane_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
                                                                                         tFieldUndefined)
 
-                self.inputPtLayerParams["line_dip_type"] = dialog.cmbInputLineOrientDipType.currentText()
-                self.inputPtLayerParams["line_dip_name_field"] = parse_field_choice(dialog.cmbInputLineDipSrcFld.currentText(),
+                    dInputLayerParams["plane_dip_type"] = dialog.cmbInputPlaneOrientDipType.currentText()
+                    dInputLayerParams["plane_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
                                                                                     tFieldUndefined)
-            except:
-                self.warn("Incorrect input field definitions")
-                return
 
-            if not ptlayer_valid_params():
-                self.warn("Invalid/incomplete parameters")
-                return
+                    dInputLayerParams["axis_azimuth_type"] = dialog.cmbInputAxisAzimType.currentText()
+                    dInputLayerParams["axis_azimuth_name_field"] = parse_field_choice(dialog.cmbInputAxisAzimSrcFld.currentText(),
+                                                                                      tFieldUndefined)
+
+                    dInputLayerParams["axis_dip_type"] = dialog.cmbInputAxisDipType.currentText()
+                    dInputLayerParams["axis_dip_name_field"] = parse_field_choice(dialog.cmbInputAxisDipSrcFld.currentText(),
+                                                                                  tFieldUndefined)
+                except:
+                    self.warn("Incorrect input field definitions")
+                    return
+
+                if not layer_input_type_valid(dInputLayerParams):
+                    self.warn("Invalid/incomplete parameters")
+                    return
+
+                # get used field names in the point attribute table
+                ltAttitudeFldNms = [dInputLayerParams["plane_azimuth_name_field"],
+                                   dInputLayerParams["plane_dip_name_field"],
+                                   dInputLayerParams["axis_azimuth_name_field"],
+                                   dInputLayerParams["axis_dip_name_field"]]
+
+                # get input data presence and type
+                lGeoStructurData = pt_geoms_attrs(lyrInputLayer, ltAttitudeFldNms)
+                dInputDataTypes = layer_input_type(dInputLayerParams)
+
+                try:
+                    _, lPlaneOrientations, lAxisOrientations = orientations_from_layer(dInputDataTypes, lGeoStructurData)
+                except Exception, msg:
+                    self.warn(str(msg))
+                    return
+            elif dialog.tabWdgt.currentIndex() == 1:
+                try:
+                    tDataType = dialog.cmbInputDataType.currentText()
+                    tPlaneAzimType = dialog.cmbInputPlaneOrAzimType.currentText()
+                    tRawValues = dialog.plntxtedInputValues.toPlainText()
+                except:
+                    self.warn("Incorrect text input")
+                    return
+
+                bValidValues, tResult = orientations_from_text(tDataType, tPlaneAzimType, tRawValues)
+                if not bValidValues:
+                    self.warn(tResult)
+                    return
+                else:
+                    lPlaneOrientations, lAxisOrientations = tResult
             else:
-                self.info("Input data defined")
-
-            # get used field names in the point attribute table
-            attitude_fldnms = [self.inputPtLayerParams["plane_azimuth_name_field"],
-                               self.inputPtLayerParams["plane_dip_name_field"],
-                               self.inputPtLayerParams["line_azimuth_name_field"],
-                               self.inputPtLayerParams["line_dip_name_field"]]
-    
-            # get input data presence and type
-            structural_data = pt_geoms_attrs(self.inputPtLayer, attitude_fldnms)
-            input_data_types = get_ptlayer_stereoplot_data_type(self.inputPtLayerParams)
-    
-            try:
-                _, plane_orientations, lineament_orientations = parse_ptlayer_geodata(input_data_types, structural_data)
-            except Exception, msg:
-                self.warn(str(msg))
+                self.warn("Error with input data choice")
                 return
     
-            if plane_orientations is None and lineament_orientations is None:
+            if not lPlaneOrientations and not lAxisOrientations:
                 self.warn("No available structural data to plot")
-                return
             else:
-                self.plane_orientations, self.lineament_orientations = plane_orientations, lineament_orientations
+                self.lPlaneOrientations, self.lAxisOrientations = lPlaneOrientations, lAxisOrientations
+                self.info("Input data read")
 
     def define_style(self):
 
@@ -261,99 +305,97 @@ class StereoplotWidget(QWidget):
 
             self.dPlotStyles["line_color"] = parse_color(dialog.btnLineColor.color())
             self.dPlotStyles["line_thickn"] = parse_thickness(dialog.cmbLineThickn.currentText())
-            self.dPlotStyles["line_transp"] = parse_transparency(dialog.cmbLineTransp.currentText())
+            self.dPlotStyles["line_opacity"] = parse_transparency(dialog.cmbLineTransp.currentText())
 
             self.dPlotStyles["point_color"] = parse_color(dialog.btnPointColor.color())
-            self.dPlotStyles["point_thickn"] = parse_thickness(dialog.cmbPointSize.currentText())
-            self.dPlotStyles["point_transp"] = parse_transparency(dialog.cmbPointTransp.currentText())
+            self.dPlotStyles["point_size"] = parse_thickness(dialog.cmbPointSize.currentText())
+            self.dPlotStyles["point_opacity"] = parse_transparency(dialog.cmbPointTransp.currentText())
 
     def define_stereoplot(self):
+
+        def plot_dataset(tStereoplotStatus, bPlotPlanes, tPlotPlanesFormat, bPlotAxes, tPlotAxesFormat):
+
+            def plot_new_stereonet(plane_data, line_data):
+
+                stereoplot = StereoNet()
+
+                if bPlotPlanes and plane_data is not None:
+                    if tPlotPlanesFormat == "great circles":
+                        for plane in plane_data:
+                            p = Fol(*plane)
+                            stereoplot.plane(p,
+                                             linewidth=self.dPlotStyles["line_thickn"],
+                                             color=self.dPlotStyles["line_color"],
+                                             alpha=self.dPlotStyles["line_opacity"])
+                    elif tPlotPlanesFormat == "normal axes":
+                        pass
+                    else:
+                        pass
+
+                if bPlotAxes and line_data is not None:
+                    if tPlotAxesFormat == "poles":
+                        for line_rec in line_data:
+                            l = Lin(*line_rec)
+                            stereoplot.line(l,
+                                            markersize=self.dPlotStyles["point_size"],
+                                            color=self.dPlotStyles["point_color"],
+                                            alpha=self.dPlotStyles["point_opacity"])
+                    elif tPlotAxesFormat == "perpendicular planes":
+                        pass
+                    else:
+                        pass
+
+                return stereoplot
+
+            def add_to_stereonet(stereoplot, plane_data, line_data):
+
+                if plane_data is not None:
+                    for plane in plane_data:
+                        p = Fol(*plane)
+                        stereoplot.plane(p,
+                                         linewidth=self.dPlotStyles["line_thickn"],
+                                         color=self.dPlotStyles["line_color"],
+                                         alpha=self.dPlotStyles["line_opacity"])
+
+                if line_data is not None:
+                    for line_rec in line_data:
+                        l = Lin(*line_rec)
+                        stereoplot.line(l)
+
+            if bPlotPlanes and not self.lPlaneOrientations:
+                self.warn("No plane data to plot")
+                return
+            elif bPlotAxes and not self.lAxisOrientations:
+                self.warn("No axis data to plot")
+                return
+
+            if tStereoplotStatus == "new stereoplot":
+                self.currStereoplot = plot_new_stereonet(self.lPlaneOrientations,
+                                                         self.lAxisOrientations)
+                self.currStereoplot.show()
+            elif tStereoplotStatus == "previous stereoplot":
+                if self.currStereoplot is None:
+                    self.warn("No already existing stereoplot")
+                    return
+                add_to_stereonet(self.currStereoplot,
+                                 self.lPlaneOrientations,
+                                 self.lAxisOrientations)
+                self.currStereoplot.show()
+            else:
+                self.warn("Choice for stereonet not defined correctly")
+
+        if not self.lPlaneOrientations and not self.lAxisOrientations:
+            self.warn("No data to plot")
+            return
 
         dialog = PlotStereonetDialog()
 
         if dialog.exec_():
-            self.plot_dataset(tStereoplotStatus=dialog.cmbStereonetFigure.currentText(),
-                              bPlotPlanes=dialog.chkPlanes.isChecked(),
-                              tPlotPlanesFormat=dialog.cmbPlanesType.currentText(),
-                              bPlotAxes=dialog.chkAxes.isChecked(),
-                              tPlotAxesFormat=dialog.cmbAxesType.currentText())
-
-    """
-    def define_numvalues_params(self):
-
-            self.plane_orientations = None
-            self.lineament_orientations = None
-
-            dialog = StereoplotSrcValuesDia()
-            if dialog.exec_():
-                try:
-                    plane_azimuth_type, values = get_input_values_params(dialog)
-                except:
-                    self.warn("Incorrect definition")
-                    return
-            else:
-                self.warn("Nothing defined")
-                return
-
-            valid_values, attachment = define_num_values(values)
-            if not valid_values:
-                self.warn(attachment)
-                return
-            else:
-                self.plane_orientations = attachment
-                self.info("Input data defined")
-    """
-
-    def plot_dataset(self, tStereoplotStatus, bPlotPlanes, tPlotPlanesFormat, bPlotAxes, tPlotAxesFormat):
-
-        def plot_new_stereonet(plane_data, line_data):
-
-            stereoplot = StereoNet()
-
-            if plane_data is not None:
-                for plane in plane_data:
-                    p = Fol(*plane)
-                    stereoplot.plane(p,
-                                     linewidth=self.dPlotStyles["line_thickn"],
-                                     color=self.dPlotStyles["line_color"],
-                                     alpha=self.dPlotStyles["line_transp"])
-
-            if line_data is not None:
-                for line_rec in line_data:
-                    l = Lin(*line_rec)
-                    stereoplot.line(l)
-
-            return stereoplot
-
-        def add_to_stereonet(stereoplot, plane_data, line_data):
-
-            if plane_data is not None:
-                for plane in plane_data:
-                    p = Fol(*plane)
-                    stereoplot.plane(p,
-                                     linewidth=self.dPlotStyles["line_thickn"],
-                                     color=self.dPlotStyles["line_color"],
-                                     alpha=self.dPlotStyles["line_transp"])
-
-            if line_data is not None:
-                for line_rec in line_data:
-                    l = Lin(*line_rec)
-                    stereoplot.line(l)
-
-        if tStereoplotStatus == "new stereoplot":
-            self.currStereoplot = plot_new_stereonet(self.plane_orientations,
-                                                     self.lineament_orientations)
-            self.currStereoplot.show()
-        elif tStereoplotStatus == "previous stereoplot":
-            if self.currStereoplot is None:
-                self.warn("No already existing stereoplot")
-                return
-            add_to_stereonet(self.currStereoplot,
-                             self.plane_orientations,
-                             self.lineament_orientations)
-            self.currStereoplot.show()
-        else:
-            self.warn("Choice for stereonet not defined correctly")
+            plot_dataset(tStereoplotStatus=dialog.cmbStereonetFigure.currentText(),
+                         bPlotPlanes=dialog.chkPlanes.isChecked(),
+                         tPlotPlanesFormat=dialog.cmbPlanesType.currentText(),
+                         bPlotAxes=dialog.chkAxes.isChecked(),
+                         tPlotAxesFormat=dialog.cmbAxesType.currentText())
 
     def info(self, msg):
 

@@ -6,12 +6,11 @@ from qgis.gui import QgsColorButtonV2
 
 from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
 
-
-ltInputPlaneAzimuthTypes = ["dip dir.", "strike rhr"]
+ltInputDataTypes = ("planes", "axes", "planes & axes")
+ltInputPlaneAzimuthTypes = ["dip direction", "strike rhr"]
 ltInputPlaneDipTypes = ["dip angle"]
-
-ltInputLineAzimuthTypes = ["trend"]
-ltInputLineDipTypes = ["plunge"]
+ltInputAxisAzimuthTypes = ["trend"]
+ltInputAxisDipTypes = ["plunge"]
 
 tLayerChooseMsg = "choose"
 tFieldUndefined = "---"
@@ -19,23 +18,21 @@ tFieldUndefined = "---"
 
 class StereoplotInputDialog(QDialog):
 
-
-
     def __init__(self, llyrLoadedPointLayers, parent=None):
 
         super(StereoplotInputDialog, self).__init__(parent)
         self.llyrLoadedPointLayers = llyrLoadedPointLayers
 
         layout = QGridLayout()
-        tabWdgt = QTabWidget()
+        self.tabWdgt = QTabWidget()
 
         self.wdgtLayerInput = self.setup_layer_input_gui()
-        self.layerTab = tabWdgt.addTab(self.wdgtLayerInput, "Layer")
+        self.layerTab = self.tabWdgt.addTab(self.wdgtLayerInput, "Layer")
 
         self.wdgtTextInput = self.setup_text_input_gui()
-        self.textTab = tabWdgt.addTab(self.wdgtTextInput, "Text")
+        self.textTab = self.tabWdgt.addTab(self.wdgtTextInput, "Text")
 
-        layout.addWidget(tabWdgt, 0, 0, 1, 1)
+        layout.addWidget(self.tabWdgt, 0, 0, 1, 1)
 
         self.setLayout(layout)
 
@@ -84,31 +81,31 @@ class StereoplotInputDialog(QDialog):
         grpAxisAttitudes = QGroupBox("Axis attitudes")
         lytAxisAttitudes = QGridLayout()
 
-        self.cmbInputLineOrientAzimType = QComboBox()
-        self.cmbInputLineOrientAzimType.addItems(ltInputLineAzimuthTypes)
-        lytAxisAttitudes.addWidget(self.cmbInputLineOrientAzimType, 0, 0, 1, 1)
+        self.cmbInputAxisAzimType = QComboBox()
+        self.cmbInputAxisAzimType.addItems(ltInputAxisAzimuthTypes)
+        lytAxisAttitudes.addWidget(self.cmbInputAxisAzimType, 0, 0, 1, 1)
 
-        self.cmbInputLineAzimSrcFld = QComboBox()
-        lytAxisAttitudes.addWidget(self.cmbInputLineAzimSrcFld, 0, 1, 1, 1)
+        self.cmbInputAxisAzimSrcFld = QComboBox()
+        lytAxisAttitudes.addWidget(self.cmbInputAxisAzimSrcFld, 0, 1, 1, 1)
 
-        self.cmbInputLineOrientDipType = QComboBox()
-        self.cmbInputLineOrientDipType.addItems(ltInputLineDipTypes)
-        lytAxisAttitudes.addWidget(self.cmbInputLineOrientDipType, 1, 0, 1, 1)
+        self.cmbInputAxisDipType = QComboBox()
+        self.cmbInputAxisDipType.addItems(ltInputAxisDipTypes)
+        lytAxisAttitudes.addWidget(self.cmbInputAxisDipType, 1, 0, 1, 1)
 
-        self.cmbInputLineDipSrcFld = QComboBox()
-        lytAxisAttitudes.addWidget(self.cmbInputLineDipSrcFld, 1, 1, 1, 1)
+        self.cmbInputAxisDipSrcFld = QComboBox()
+        lytAxisAttitudes.addWidget(self.cmbInputAxisDipSrcFld, 1, 1, 1, 1)
 
         grpAxisAttitudes.setLayout(lytAxisAttitudes)
         lytLayerInput.addWidget(grpAxisAttitudes, 3, 0, 2, 2)
 
         self.lStructuralComboxes = [self.cmbInputPlaneAzimSrcFld,
                                     self.cmbInputPlaneDipSrcFld,
-                                    self.cmbInputLineAzimSrcFld,
-                                    self.cmbInputLineDipSrcFld]
+                                    self.cmbInputAxisAzimSrcFld,
+                                    self.cmbInputAxisDipSrcFld]
 
         self.refresh_struct_point_lyr_combobox(self.llyrLoadedPointLayers)
 
-        self.cmbInputLayers.currentIndexChanged[int].connect (self.refresh_structural_fields_comboboxes)
+        self.cmbInputLayers.currentIndexChanged[int].connect(self.refresh_structural_fields_comboboxes)
 
         btnOk = QPushButton("&OK")
         btnCancel = QPushButton("Cancel")
@@ -139,14 +136,19 @@ class StereoplotInputDialog(QDialog):
         grpInputValues = QGroupBox("Input values")
         lytInputValues = QGridLayout()
 
-        lytInputValues.addWidget(QLabel("Type of azimuth"), 0, 0, 1, 1)
+        lytInputValues.addWidget(QLabel("Data are"), 0, 0, 1, 1)
+        self.cmbInputDataType = QComboBox()
+        self.cmbInputDataType.addItems(ltInputDataTypes)
+        lytInputValues.addWidget(self.cmbInputDataType, 0, 1, 1, 1)
+
+        lytInputValues.addWidget(QLabel("Plane azimuth is"), 1, 0, 1, 1)
         self.cmbInputPlaneOrAzimType = QComboBox()
         self.cmbInputPlaneOrAzimType.addItems(ltInputPlaneAzimuthTypes)
-        lytInputValues.addWidget(self.cmbInputPlaneOrAzimType, 0, 1, 1, 1)
+        lytInputValues.addWidget(self.cmbInputPlaneOrAzimType, 1, 1, 1, 1)
 
-        lytInputValues.addWidget(QLabel("Input is: azimuth, dip angle\ne.g.\n220,33\n145,59"), 1, 0, 1, 2)
+        lytInputValues.addWidget(QLabel("Input example: \n220,33,131,1\n145,59,57,9"), 2, 0, 1, 2)
         self.plntxtedInputValues = QPlainTextEdit()
-        lytInputValues.addWidget(self.plntxtedInputValues, 2, 0, 5, 2)
+        lytInputValues.addWidget(self.plntxtedInputValues, 3, 0, 5, 2)
 
         grpInputValues.setLayout(lytInputValues)
         lytTextInput.addWidget(grpInputValues)
@@ -232,7 +234,7 @@ class PlotStyleDialog(QDialog):
         # line thickness
 
         lytGreatCircles.addWidget(QLabel("Line width"))
-        lnLineThickness = [1, 2, 3, 4]
+        lnLineThickness = [1, 2, 3, 4, 5, 6]
         self.cmbLineThickn = QComboBox()
         self.ltLineThicknVals = [str(val) + " pt(s)" for val in lnLineThickness]
         self.cmbLineThickn.insertItems(0, self.ltLineThicknVals)
@@ -245,7 +247,6 @@ class PlotStyleDialog(QDialog):
         self.cmbLineTransp = QComboBox()
         self.ltLineTranspPrcntVals = [str(val) + "%" for val in lnLineTransparencies]
         self.cmbLineTransp.insertItems(0, self.ltLineTranspPrcntVals)
-        # self.transparency_QComboBox.currentIndexChanged['QString'].connect(self.update_color_transparency)
         lytGreatCircles.addWidget(self.cmbLineTransp)
 
         # set/add to layout
@@ -269,10 +270,11 @@ class PlotStyleDialog(QDialog):
         # point size
 
         lytPoles.addWidget(QLabel("Point size   "))
-        lnPointSizes = [1, 2, 3, 4, 5]
+        lnPointSizes = [2, 4, 6, 8, 10, 15, 20]
         self.cmbPointSize = QComboBox()
         self.ltPointSizeVals = [str(val) + " pt(s)" for val in lnPointSizes]
         self.cmbPointSize.insertItems(0, self.ltPointSizeVals)
+        self.cmbPointSize.setCurrentIndex(2)
         lytPoles.addWidget(self.cmbPointSize)
 
         # point transparency
@@ -374,62 +376,6 @@ class PlotStereonetDialog(QDialog):
         self.setLayout(layout)
 
         self.setWindowTitle("Stereonet plot")
-
-
-"""
-class StereoplotSrcValuesDia(QDialog):
-
-    def __init__(self, parent=None):
-        super(StereoplotSrcValuesDia, self).__init__(parent)
-
-        self.setup_text_input_gui()
-
-    def setup_text_input_gui(self):
-
-        self.layer_choose_msg = "choose"
-        self.field_undefined_txt = "---"
-
-        text_input_layout = QVBoxLayout()
-
-        # input values
-
-        values_QGroupBox = QGroupBox("Input values")
-        values_QGridLayout = QGridLayout()
-
-        values_QGridLayout.addWidget(QLabel("Type of azimuth"), 0, 0, 1, 1)
-        self.input_plane_orient_azimuth_type_QComboBox = QComboBox()
-        self.input_plane_orient_azimuth_type_QComboBox.addItems(input_plane_azimuth_types)
-        values_QGridLayout.addWidget(self.input_plane_orient_azimuth_type_QComboBox, 0, 1, 1, 1)
-
-        values_QGridLayout.addWidget(QLabel("Input is: azimuth, dip angle\ne.g.\n220,33\n145,59"), 1, 0, 1, 2)
-        self.input_values_QPlainTextEdit = QPlainTextEdit()
-        values_QGridLayout.addWidget(self.input_values_QPlainTextEdit, 2, 0, 5, 2)
-
-        values_QGroupBox.setLayout(values_QGridLayout)
-        text_input_layout.addWidget(values_QGroupBox)
-
-        # ok/cancel choices
-
-        okButton = QPushButton("&OK")
-        cancelButton = QPushButton("Cancel")
-
-        self.connect(okButton, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-
-        self.connect(cancelButton, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
-
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addStretch()
-        buttonLayout.addWidget(okButton)
-        buttonLayout.addWidget(cancelButton)
-
-        text_input_layout.addLayout(buttonLayout)
-
-        self.setLayout(text_input_layout)
-
-        self.setWindowTitle("Define plane attitude values")
-"""
 
 class AnglesSrcPtLyrDia(QDialog):
 
