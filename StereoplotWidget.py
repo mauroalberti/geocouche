@@ -42,11 +42,16 @@ class StereoplotWidget(QWidget):
 
         self.dPlotStyles = dict()
         self.dPlotStyles["line_color"] = 1., 0., 0.
+        self.dPlotStyles["line_style"] = "solid"
         self.dPlotStyles["line_thickn"] = 1.
         self.dPlotStyles["line_opacity"] = 1.
         self.dPlotStyles["point_color"] = 1., 0., 0.
+        self.dPlotStyles["point_style"] = "circle"
         self.dPlotStyles["point_size"] = 6.
         self.dPlotStyles["point_opacity"] = 1.
+        
+        self.lPlaneOrientations = []
+        self.lAxisOrientations = []
 
         self.setup_gui()
 
@@ -304,10 +309,12 @@ class StereoplotWidget(QWidget):
         if dialog.exec_():
 
             self.dPlotStyles["line_color"] = parse_color(dialog.btnLineColor.color())
+            self.dPlotStyles["line_style"] = dialog.cmbLineStyle.currentText()
             self.dPlotStyles["line_thickn"] = parse_thickness(dialog.cmbLineThickn.currentText())
             self.dPlotStyles["line_opacity"] = parse_transparency(dialog.cmbLineTransp.currentText())
 
             self.dPlotStyles["point_color"] = parse_color(dialog.btnPointColor.color())
+            self.dPlotStyles["point_style"] = dialog.cmbPointStyle.currentText()
             self.dPlotStyles["point_size"] = parse_thickness(dialog.cmbPointSize.currentText())
             self.dPlotStyles["point_opacity"] = parse_transparency(dialog.cmbPointTransp.currentText())
 

@@ -1,5 +1,5 @@
 
-
+from collections import OrderedDict
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.gui import QgsColorButtonV2
@@ -14,6 +14,9 @@ ltInputAxisDipTypes = ["plunge"]
 
 tLayerChooseMsg = "choose"
 tFieldUndefined = "---"
+
+ltLineStyles = ["solid", "dashed", "dashdot", "dotted"]
+ltPointStyles = OrderedDict([("circle", "o"), ("square", "s"), ("diamond", "D"), ("triangle", "^")])
 
 
 class StereoplotInputDialog(QDialog):
@@ -221,33 +224,40 @@ class PlotStyleDialog(QDialog):
         # great circle settings
 
         grpGreatCircles = QGroupBox("Great circles")
-        lytGreatCircles = QHBoxLayout()
+        lytGreatCircles = QGridLayout()
 
         # line color
 
-        lytGreatCircles.addWidget(QLabel("Line color"))
+        lytGreatCircles.addWidget(QLabel("Line color"), 0, 0, 1, 1)
         red, green, blue, alpha = map(int, self.tColorRGBA.split(","))
         self.btnLineColor = QgsColorButtonV2()
         self.btnLineColor.setColor(QColor(red, green, blue, alpha))
-        lytGreatCircles.addWidget(self.btnLineColor)
+        lytGreatCircles.addWidget(self.btnLineColor, 0, 1, 1, 1)
 
+        # line style
+
+        lytGreatCircles.addWidget(QLabel("Line style"), 0, 2, 1, 1)
+        self.cmbLineStyle = QComboBox()
+        self.cmbLineStyle.insertItems(0, ltLineStyles)
+        lytGreatCircles.addWidget(self.cmbLineStyle, 0, 3, 1, 1)
+        
         # line thickness
 
-        lytGreatCircles.addWidget(QLabel("Line width"))
+        lytGreatCircles.addWidget(QLabel("Line width"), 1, 0, 1, 1)
         lnLineThickness = [1, 2, 3, 4, 5, 6]
         self.cmbLineThickn = QComboBox()
         self.ltLineThicknVals = [str(val) + " pt(s)" for val in lnLineThickness]
         self.cmbLineThickn.insertItems(0, self.ltLineThicknVals)
-        lytGreatCircles.addWidget(self.cmbLineThickn)
+        lytGreatCircles.addWidget(self.cmbLineThickn, 1, 1, 1, 1)
 
         # line transparency
 
-        lytGreatCircles.addWidget(QLabel("Line transp."))
+        lytGreatCircles.addWidget(QLabel("Line transp."), 1, 2, 1, 1)
         lnLineTransparencies = [0, 25, 50, 75]
         self.cmbLineTransp = QComboBox()
         self.ltLineTranspPrcntVals = [str(val) + "%" for val in lnLineTransparencies]
         self.cmbLineTransp.insertItems(0, self.ltLineTranspPrcntVals)
-        lytGreatCircles.addWidget(self.cmbLineTransp)
+        lytGreatCircles.addWidget(self.cmbLineTransp, 1, 3, 1, 1)
 
         # set/add to layout
 
@@ -257,34 +267,41 @@ class PlotStyleDialog(QDialog):
         # pole settings
 
         grpPoles = QGroupBox("Poles")
-        lytPoles = QHBoxLayout()
+        lytPoles = QGridLayout()
 
-        # pole color
+        # marker color
 
-        lytPoles.addWidget(QLabel("Point color"))
+        lytPoles.addWidget(QLabel("Marker color"), 0, 0, 1, 1)
         red, green, blue, alpha = map(int, self.tColorRGBA.split(","))
         self.btnPointColor = QgsColorButtonV2()
         self.btnPointColor.setColor(QColor(red, green, blue, alpha))
-        lytPoles.addWidget(self.btnPointColor)
+        lytPoles.addWidget(self.btnPointColor, 0, 1, 1, 1)
 
-        # point size
+        # marker style
 
-        lytPoles.addWidget(QLabel("Point size   "))
+        lytPoles.addWidget(QLabel("Marker style"), 0, 2, 1, 1)
+        self.cmbPointStyle = QComboBox()
+        self.cmbPointStyle.insertItems(0, ltPointStyles.keys())
+        lytPoles.addWidget(self.cmbPointStyle, 0, 3, 1, 1)
+        
+        # marker size
+
+        lytPoles.addWidget(QLabel("Marker size"), 1, 0, 1, 1)
         lnPointSizes = [2, 4, 6, 8, 10, 15, 20]
         self.cmbPointSize = QComboBox()
         self.ltPointSizeVals = [str(val) + " pt(s)" for val in lnPointSizes]
         self.cmbPointSize.insertItems(0, self.ltPointSizeVals)
         self.cmbPointSize.setCurrentIndex(2)
-        lytPoles.addWidget(self.cmbPointSize)
+        lytPoles.addWidget(self.cmbPointSize, 1, 1, 1, 1)
 
-        # point transparency
+        # marker transparency
 
-        lytPoles.addWidget(QLabel("Point transp."))
+        lytPoles.addWidget(QLabel("Marker transp."), 1, 2, 1, 1)
         lnPointTransparencies = [0, 25, 50, 75]
         self.cmbPointTransp = QComboBox()
         self.ltPointTranspPrcntVals = [str(val) + "%" for val in lnPointTransparencies]
         self.cmbPointTransp.insertItems(0, self.ltPointTranspPrcntVals)
-        lytPoles.addWidget(self.cmbPointTransp)
+        lytPoles.addWidget(self.cmbPointTransp, 1, 3, 1, 1)
 
         # set/add to layout
 
