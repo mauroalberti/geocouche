@@ -314,7 +314,7 @@ class StereoplotWidget(QWidget):
             self.dPlotStyles["line_opacity"] = parse_transparency(dialog.cmbLineTransp.currentText())
 
             self.dPlotStyles["point_color"] = parse_color(dialog.btnPointColor.color())
-            self.dPlotStyles["point_style"] = dialog.cmbPointStyle.currentText()
+            self.dPlotStyles["point_style"] = ltPointStyles[dialog.cmbPointStyle.currentText()]
             self.dPlotStyles["point_size"] = parse_thickness(dialog.cmbPointSize.currentText())
             self.dPlotStyles["point_opacity"] = parse_transparency(dialog.cmbPointTransp.currentText())
 
@@ -331,6 +331,7 @@ class StereoplotWidget(QWidget):
                         for plane in plane_data:
                             p = Fol(*plane)
                             stereoplot.plane(p,
+                                             linestyle=self.dPlotStyles["line_style"],
                                              linewidth=self.dPlotStyles["line_thickn"],
                                              color=self.dPlotStyles["line_color"],
                                              alpha=self.dPlotStyles["line_opacity"])
@@ -344,6 +345,7 @@ class StereoplotWidget(QWidget):
                         for line_rec in line_data:
                             l = Lin(*line_rec)
                             stereoplot.line(l,
+                                            marker=self.dPlotStyles["point_style"],
                                             markersize=self.dPlotStyles["point_size"],
                                             color=self.dPlotStyles["point_color"],
                                             alpha=self.dPlotStyles["point_opacity"])
@@ -360,6 +362,7 @@ class StereoplotWidget(QWidget):
                     for plane in plane_data:
                         p = Fol(*plane)
                         stereoplot.plane(p,
+                                         linestyle=self.dPlotStyles["line_style"],
                                          linewidth=self.dPlotStyles["line_thickn"],
                                          color=self.dPlotStyles["line_color"],
                                          alpha=self.dPlotStyles["line_opacity"])
@@ -367,7 +370,11 @@ class StereoplotWidget(QWidget):
                 if line_data is not None:
                     for line_rec in line_data:
                         l = Lin(*line_rec)
-                        stereoplot.line(l)
+                        stereoplot.line(l,
+                                        marker=self.dPlotStyles["point_style"],
+                                        markersize=self.dPlotStyles["point_size"],
+                                        color=self.dPlotStyles["point_color"],
+                                        alpha=self.dPlotStyles["point_opacity"])
 
             if bPlotPlanes and not self.lPlaneOrientations:
                 self.warn("No plane data to plot")
