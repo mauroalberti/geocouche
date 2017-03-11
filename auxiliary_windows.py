@@ -217,7 +217,7 @@ class PlotStyleDialog(QDialog):
 
         super(PlotStyleDialog, self).__init__(parent)
 
-        self.tColorRGBA = '255,0,0,255'
+        settings = QSettings("alberese", "geocouche")
 
         layout = QVBoxLayout()
 
@@ -229,9 +229,9 @@ class PlotStyleDialog(QDialog):
         # line color
 
         lytGreatCircles.addWidget(QLabel("Line color"), 0, 0, 1, 1)
-        red, green, blue, alpha = map(int, self.tColorRGBA.split(","))
         self.btnLineColor = QgsColorButtonV2()
-        self.btnLineColor.setColor(QColor(red, green, blue, alpha))
+        line_color = settings.value("stereplot_QWidget/line_color", "#FF0000")
+        self.btnLineColor.setColor(QColor(line_color))
         lytGreatCircles.addWidget(self.btnLineColor, 0, 1, 1, 1)
 
         # line style
@@ -239,24 +239,33 @@ class PlotStyleDialog(QDialog):
         lytGreatCircles.addWidget(QLabel("Line style"), 0, 2, 1, 1)
         self.cmbLineStyle = QComboBox()
         self.cmbLineStyle.insertItems(0, ltLineStyles)
+        line_style = settings.value("stereplot_QWidget/line_style", "solid")
+        line_style_ndx = ltLineStyles.index(line_style) if line_style in ltLineStyles else 0
+        self.cmbLineStyle.setCurrentIndex(line_style_ndx)
         lytGreatCircles.addWidget(self.cmbLineStyle, 0, 3, 1, 1)
-        
+    
         # line thickness
 
-        lytGreatCircles.addWidget(QLabel("Line width"), 1, 0, 1, 1)
-        lnLineThickness = [1, 2, 3, 4, 5, 6]
+        lytGreatCircles.addWidget(QLabel("Line width"), 1, 0, 1, 1)        
         self.cmbLineThickn = QComboBox()
-        self.ltLineThicknVals = [str(val) + " pt(s)" for val in lnLineThickness]
-        self.cmbLineThickn.insertItems(0, self.ltLineThicknVals)
+        lnLineThickness = [1, 2, 3, 4, 5, 6]
+        ltLineThicknVals = [str(val) + " pt(s)" for val in lnLineThickness]
+        self.cmbLineThickn.insertItems(0, ltLineThicknVals)
+        line_thickn = settings.value("stereplot_QWidget/line_thickn", "1 pt(s)")
+        line_thickn_ndx = ltLineThicknVals.index(line_thickn) if line_thickn in ltLineThicknVals else 0 
+        self.cmbLineThickn.setCurrentIndex(line_thickn_ndx)
         lytGreatCircles.addWidget(self.cmbLineThickn, 1, 1, 1, 1)
 
         # line transparency
 
         lytGreatCircles.addWidget(QLabel("Line transp."), 1, 2, 1, 1)
+        self.cmbLineTransp = QComboBox()        
         lnLineTransparencies = [0, 25, 50, 75]
-        self.cmbLineTransp = QComboBox()
-        self.ltLineTranspPrcntVals = [str(val) + "%" for val in lnLineTransparencies]
-        self.cmbLineTransp.insertItems(0, self.ltLineTranspPrcntVals)
+        ltLineTranspPrcntVals = [str(val) + "%" for val in lnLineTransparencies]
+        self.cmbLineTransp.insertItems(0, ltLineTranspPrcntVals)
+        line_transp = settings.value("stereplot_QWidget/line_opacity", "0%")
+        line_transp_ndx = ltLineTranspPrcntVals.index(line_transp) if line_transp in ltLineTranspPrcntVals else 0 
+        self.cmbLineTransp.setCurrentIndex(line_transp_ndx)        
         lytGreatCircles.addWidget(self.cmbLineTransp, 1, 3, 1, 1)
 
         # set/add to layout
@@ -272,9 +281,9 @@ class PlotStyleDialog(QDialog):
         # marker color
 
         lytPoles.addWidget(QLabel("Marker color"), 0, 0, 1, 1)
-        red, green, blue, alpha = map(int, self.tColorRGBA.split(","))
         self.btnPointColor = QgsColorButtonV2()
-        self.btnPointColor.setColor(QColor(red, green, blue, alpha))
+        point_color = settings.value("stereplot_QWidget/point_color", "#0000FF")
+        self.btnPointColor.setColor(QColor(point_color))
         lytPoles.addWidget(self.btnPointColor, 0, 1, 1, 1)
 
         # marker style
@@ -282,6 +291,9 @@ class PlotStyleDialog(QDialog):
         lytPoles.addWidget(QLabel("Marker style"), 0, 2, 1, 1)
         self.cmbPointStyle = QComboBox()
         self.cmbPointStyle.insertItems(0, ltPointStyles.keys())
+        point_style = settings.value("stereplot_QWidget/point_style", "circle")
+        point_style_ndx = ltPointStyles.keys().index(point_style) if point_style in ltPointStyles.keys() else 0
+        self.cmbPointStyle.setCurrentIndex(point_style_ndx)
         lytPoles.addWidget(self.cmbPointStyle, 0, 3, 1, 1)
         
         # marker size
@@ -289,9 +301,11 @@ class PlotStyleDialog(QDialog):
         lytPoles.addWidget(QLabel("Marker size"), 1, 0, 1, 1)
         lnPointSizes = [2, 4, 6, 8, 10, 15, 20]
         self.cmbPointSize = QComboBox()
-        self.ltPointSizeVals = [str(val) + " pt(s)" for val in lnPointSizes]
-        self.cmbPointSize.insertItems(0, self.ltPointSizeVals)
-        self.cmbPointSize.setCurrentIndex(2)
+        ltPointSizeVals = [str(val) + " pt(s)" for val in lnPointSizes]
+        self.cmbPointSize.insertItems(0, ltPointSizeVals)
+        point_size = settings.value("stereplot_QWidget/point_size", "6 pt(s)")
+        point_style_ndx = ltPointSizeVals.index(point_size) if point_size in ltPointSizeVals else 2        
+        self.cmbPointSize.setCurrentIndex(point_style_ndx)
         lytPoles.addWidget(self.cmbPointSize, 1, 1, 1, 1)
 
         # marker transparency
@@ -299,8 +313,11 @@ class PlotStyleDialog(QDialog):
         lytPoles.addWidget(QLabel("Marker transp."), 1, 2, 1, 1)
         lnPointTransparencies = [0, 25, 50, 75]
         self.cmbPointTransp = QComboBox()
-        self.ltPointTranspPrcntVals = [str(val) + "%" for val in lnPointTransparencies]
-        self.cmbPointTransp.insertItems(0, self.ltPointTranspPrcntVals)
+        ltPointTranspPrcntVals = [str(val) + "%" for val in lnPointTransparencies]
+        self.cmbPointTransp.insertItems(0, ltPointTranspPrcntVals)
+        point_transp = settings.value("stereplot_QWidget/point_opacity", "0%")
+        point_transp_ndx = ltPointTranspPrcntVals.index(point_transp) if point_transp in ltPointTranspPrcntVals else 0 
+        self.cmbPointTransp.setCurrentIndex(point_transp_ndx)        
         lytPoles.addWidget(self.cmbPointTransp, 1, 3, 1, 1)
 
         # set/add to layout

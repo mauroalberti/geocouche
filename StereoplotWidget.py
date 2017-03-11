@@ -317,6 +317,18 @@ class StereoplotWidget(QWidget):
             self.dPlotStyles["point_style"] = ltPointStyles[dialog.cmbPointStyle.currentText()]
             self.dPlotStyles["point_size"] = parse_thickness(dialog.cmbPointSize.currentText())
             self.dPlotStyles["point_opacity"] = parse_transparency(dialog.cmbPointTransp.currentText())
+            
+            settings = QSettings("alberese", "geocouche")
+            settings.setValue("stereplot_QWidget/line_color", dialog.btnLineColor.color().name())
+            settings.setValue("stereplot_QWidget/line_style", dialog.cmbLineStyle.currentText())
+            settings.setValue("stereplot_QWidget/line_thickn", dialog.cmbLineThickn.currentText())
+            settings.setValue("stereplot_QWidget/line_opacity", dialog.cmbLineTransp.currentText())  
+                                      
+            settings.setValue("stereplot_QWidget/point_color", dialog.btnPointColor.color().name())
+            settings.setValue("stereplot_QWidget/point_style", dialog.cmbPointStyle.currentText())
+            settings.setValue("stereplot_QWidget/point_size", dialog.cmbPointSize.currentText())
+            settings.setValue("stereplot_QWidget/point_opacity", dialog.cmbPointTransp.currentText()) 
+
 
     def define_stereoplot(self):
 
