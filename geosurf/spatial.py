@@ -1051,6 +1051,11 @@ class GeolAxis(object):
         self._plunge = srcPlunge
 
     @property
+    def vals(self):
+        
+        return self._trend, self._plunge
+    
+    @property
     def trend(self):
 
         return self._trend
@@ -1072,9 +1077,7 @@ class GeolAxis(object):
 
         trend, plunge = self.trend, self.plunge
         if plunge < 0.0:
-            trend += 180.0
-            if trend > 360.0:
-                trend -= 360.0
+            trend = (trend + 180.0) % 360.0
             plunge = - plunge
 
         return GeolAxis(trend, plunge)
@@ -1082,10 +1085,7 @@ class GeolAxis(object):
     def as_normalgeolplane(self):
 
         down_axis = self.as_downgeolaxis()
-
-        dipdir = down_axis.trend + 180.0
-        if dipdir >= 360.0:
-            dipdir -= 360.0
+        dipdir = (down_axis.trend + 180.0) % 360.0
         dipangle = 90.0 - down_axis.plunge
 
         return GeolPlane(dipdir, dipangle)
@@ -1227,17 +1227,23 @@ class GeolPlane(object):
         self._dipangle = srcDipAngle
 
     @property
+    def vals(self):
+        
+        return self._dipdir, self._dipangle
+    
+    @property
     def dipdir(self):
+        
         return self._dipdir
 
     @property
     def dipangle(self):
+        
         return self._dipangle
 
     def as_normalgeolaxis(self):
-        trend = self.dipdir + 180.0
-        if trend >= 360.0:
-            trend -= 360.0
+        
+        trend = (self.dipdir + 180.0) % 360.0
         plunge = 90.0 - self.dipangle
 
         return GeolAxis(trend, plunge)

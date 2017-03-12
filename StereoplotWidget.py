@@ -27,6 +27,12 @@
 from apsg import *
 
 from auxiliary_windows import *
+from geosurf.spatial import GeolPlane, GeolAxis
+
+
+class StereoplotWidgetException(Exception):
+    
+    pass
 
 
 class StereoplotWidget(QWidget):
@@ -334,59 +340,47 @@ class StereoplotWidget(QWidget):
 
         def plot_dataset(tStereoplotStatus, bPlotPlanes, tPlotPlanesFormat, bPlotAxes, tPlotAxesFormat):
 
-            def plot_new_stereonet(plane_data, line_data):
+            def plot_data_in_stereonet(plane_data, line_data):
 
                 stereoplot = StereoNet()
 
                 if bPlotPlanes and plane_data is not None:
-                    if tPlotPlanesFormat == "great circles":
-                        for plane in plane_data:
+                    assert tPlotPlanesFormat in ["great circles", "normal axes"]
+                    for plane in plane_data:
+                        if tPlotPlanesFormat == "great circles":                            
                             p = Fol(*plane)
                             stereoplot.plane(p,
                                              linestyle=self.dPlotStyles["line_style"],
                                              linewidth=self.dPlotStyles["line_thickn"],
                                              color=self.dPlotStyles["line_color"],
                                              alpha=self.dPlotStyles["line_opacity"])
-                    elif tPlotPlanesFormat == "normal axes":
-                        pass
-                    else:
-                        pass
-
-                if bPlotAxes and line_data is not None:
-                    if tPlotAxesFormat == "poles":
-                        for line_rec in line_data:
+                        else:
+                            line_rec = GeolPlane(*plane).as_normalgeolaxis().as_downgeolaxis().vals
                             l = Lin(*line_rec)
                             stereoplot.line(l,
                                             marker=self.dPlotStyles["point_style"],
                                             markersize=self.dPlotStyles["point_size"],
                                             color=self.dPlotStyles["point_color"],
                                             alpha=self.dPlotStyles["point_opacity"])
-                    elif tPlotAxesFormat == "perpendicular planes":
-                        pass
-                    else:
-                        pass
-
-                return stereoplot
-
-            def add_to_stereonet(stereoplot, plane_data, line_data):
-
-                if plane_data is not None:
-                    for plane in plane_data:
-                        p = Fol(*plane)
-                        stereoplot.plane(p,
-                                         linestyle=self.dPlotStyles["line_style"],
-                                         linewidth=self.dPlotStyles["line_thickn"],
-                                         color=self.dPlotStyles["line_color"],
-                                         alpha=self.dPlotStyles["line_opacity"])
-
-                if line_data is not None:
+                            
+                if bPlotAxes and line_data is not None:
+                    assert tPlotAxesFormat in ["poles", "perpendicular planes"]
                     for line_rec in line_data:
-                        l = Lin(*line_rec)
-                        stereoplot.line(l,
-                                        marker=self.dPlotStyles["point_style"],
-                                        markersize=self.dPlotStyles["point_size"],
-                                        color=self.dPlotStyles["point_color"],
-                                        alpha=self.dPlotStyles["point_opacity"])
+                        if tPlotAxesFormat == "poles":                            
+                            l = Lin(*line_rec)
+                            stereoplot.line(l,
+                                            marker=self.dPlotStyles["point_style"],
+                                            markersize=self.dPlotStyles["point_size"],
+                                            color=self.dPlotStyles["point_color"],
+                                            alpha=self.dPlotStyles["point_opacity"])
+                        else:
+                            plane = GeolAxis(*line_rec).as_normalgeolplane().vals
+                            p = Fol(*plane)
+                            stereoplot.plane(p,
+                                             linestyle=self.dPlotStyles["line_style"],
+                                             linewidth=self.dPlotStyles["line_thickn"],
+                                             color=self.dPlotStyles["line_color"],
+                                             alpha=self.dPlotStyles["line_opacity"])
 
             if bPlotPlanes and not self.lPlaneOrientations:
                 self.warn("No plane data to plot")
@@ -396,26 +390,16 @@ class StereoplotWidget(QWidget):
                 return
 
             if tStereoplotStatus == "new stereoplot":
-                self.currStereoplot = plot_new_stereonet(self.lPlaneOrientations,
-                                                         self.lAxisOrientations)
-                self.currStereoplot.show()
-            elif tStereoplotStatus == "previous stereoplot":
-                if self.currStereoplot is None:
-                    self.warn("No already existing stereoplot")
-                    return
-                add_to_stereonet(self.currStereoplot,
-                                 self.lPlaneOrientations,
-                                 self.lAxisOrientations)
-                self.currStereoplot.show()
-            else:
-                self.warn("Choice for stereonet not defined correctly")
+                self.currStereoplot = StereoplotWidget()
+            plot_data_in_stereonet(self.lPlaneOrientations,
+                                   self.lAxisOrientations)
+            self.currStereoplot.show()
 
         if not self.lPlaneOrientations and not self.lAxisOrientations:
             self.warn("No data to plot")
             return
 
         dialog = PlotStereonetDialog()
-
         if dialog.exec_():
             plot_dataset(tStereoplotStatus=dialog.cmbStereonetFigure.currentText(),
                          bPlotPlanes=dialog.chkPlanes.isChecked(),
