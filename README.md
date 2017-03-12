@@ -17,3 +17,4 @@ State
  - [2107-03-05] restored data input from text tab
  - [2017-03-10] implemented plot using chosen line and marker styles
  - [2017-03-11] implemented storage of plot settings
+ - [2017-03-12] implemented great circle <-> pole plot switch - STILL TO BE TESTED
