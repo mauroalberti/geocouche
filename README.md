@@ -18,3 +18,4 @@ State
  - [2017-03-10] implemented plot using chosen line and marker styles
  - [2017-03-11] implemented storage of plot settings
  - [2017-03-12] implemented great circle <-> pole plot switch - STILL TO BE TESTED
+ - [2017-03-18] changed plot style management and removed a few minor bugs - help still to be created and pre-release testings to be performed
