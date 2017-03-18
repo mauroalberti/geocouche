@@ -24,15 +24,13 @@
  ***************************************************************************/
 """
 
+from PyQt4.QtCore import QSettings
+from PyQt4.QtGui import QColor
 from apsg import *
 
 from auxiliary_windows import *
 from geosurf.spatial import GeolPlane, GeolAxis
 
-
-class StereoplotWidgetException(Exception):
-    
-    pass
 
 
 class StereoplotWidget(QWidget):
@@ -46,15 +44,16 @@ class StereoplotWidget(QWidget):
         self.mapCanvas = canvas
         self.pluginName = plugin_name
 
+        settings = QSettings("alberese", "geocouche")
         self.dPlotStyles = dict()
-        self.dPlotStyles["line_color"] = 1., 0., 0.
-        self.dPlotStyles["line_style"] = "solid"
-        self.dPlotStyles["line_thickn"] = 1.
-        self.dPlotStyles["line_opacity"] = 1.
-        self.dPlotStyles["point_color"] = 1., 0., 0.
-        self.dPlotStyles["point_style"] = "circle"
-        self.dPlotStyles["point_size"] = 6.
-        self.dPlotStyles["point_opacity"] = 1.
+        self.dPlotStyles["line_color"] = settings.value("StereoplotWidget/line_color", "#FF0000")
+        self.dPlotStyles["line_style"] = settings.value("StereoplotWidget/line_style", "solid")
+        self.dPlotStyles["line_width"] = settings.value("StereoplotWidget/line_width", "1 pt(s)")
+        self.dPlotStyles["line_transp"] = settings.value("StereoplotWidget/line_transp", "0%")
+        self.dPlotStyles["marker_color"] = settings.value("StereoplotWidget/marker_color", "#0000FF")
+        self.dPlotStyles["marker_style"] = settings.value("StereoplotWidget/marker_style", "circle")
+        self.dPlotStyles["marker_size"] = settings.value("StereoplotWidget/marker_size", "6 pt(s)")
+        self.dPlotStyles["marker_transp"] = settings.value("StereoplotWidget/point_transp", "0%")
         
         self.lPlaneOrientations = []
         self.lAxisOrientations = []
@@ -291,49 +290,19 @@ class StereoplotWidget(QWidget):
 
     def define_style(self):
 
-        def parse_color(color):
-            """
-            return tuple of three float values [0,1]
-            """
-
-            red = color.red() / 255.0
-            green = color.green() / 255.0
-            blue = color.blue() / 255.0
-
-            return red, green, blue
-
-        def parse_thickness(tThickn):
-
-            return float(tThickn.split()[0])
-
-        def parse_transparency(tTranspar):
-
-            return 1.0 - (float(tTranspar[:-1]) / 100.0)  # removes final '%' from input value
-
-        dialog = PlotStyleDialog()
+        dialog = PlotStyleDialog(self.dPlotStyles)
 
         if dialog.exec_():
 
-            self.dPlotStyles["line_color"] = parse_color(dialog.btnLineColor.color())
+            self.dPlotStyles["line_color"] = dialog.btnLineColor.color().name()
             self.dPlotStyles["line_style"] = dialog.cmbLineStyle.currentText()
-            self.dPlotStyles["line_thickn"] = parse_thickness(dialog.cmbLineThickn.currentText())
-            self.dPlotStyles["line_opacity"] = parse_transparency(dialog.cmbLineTransp.currentText())
+            self.dPlotStyles["line_width"] = dialog.cmbLineWidth.currentText()
+            self.dPlotStyles["line_transp"] = dialog.cmbLineTransp.currentText()
 
-            self.dPlotStyles["point_color"] = parse_color(dialog.btnPointColor.color())
-            self.dPlotStyles["point_style"] = ltPointStyles[dialog.cmbPointStyle.currentText()]
-            self.dPlotStyles["point_size"] = parse_thickness(dialog.cmbPointSize.currentText())
-            self.dPlotStyles["point_opacity"] = parse_transparency(dialog.cmbPointTransp.currentText())
-            
-            settings = QSettings("alberese", "geocouche")
-            settings.setValue("stereplot_QWidget/line_color", dialog.btnLineColor.color().name())
-            settings.setValue("stereplot_QWidget/line_style", dialog.cmbLineStyle.currentText())
-            settings.setValue("stereplot_QWidget/line_thickn", dialog.cmbLineThickn.currentText())
-            settings.setValue("stereplot_QWidget/line_opacity", dialog.cmbLineTransp.currentText())  
-                                      
-            settings.setValue("stereplot_QWidget/point_color", dialog.btnPointColor.color().name())
-            settings.setValue("stereplot_QWidget/point_style", dialog.cmbPointStyle.currentText())
-            settings.setValue("stereplot_QWidget/point_size", dialog.cmbPointSize.currentText())
-            settings.setValue("stereplot_QWidget/point_opacity", dialog.cmbPointTransp.currentText()) 
+            self.dPlotStyles["marker_color"] = dialog.btnPointColor.color().name()
+            self.dPlotStyles["marker_style"] = dialog.cmbPointStyle.currentText()
+            self.dPlotStyles["marker_size"] = dialog.cmbPointSize.currentText()
+            self.dPlotStyles["marker_transp"] = dialog.cmbPointTransp.currentText()
 
 
     def define_stereoplot(self):
@@ -342,45 +311,73 @@ class StereoplotWidget(QWidget):
 
             def plot_data_in_stereonet(plane_data, line_data):
 
-                stereoplot = StereoNet()
+                def parse_color(color_name):
+                    """
+                    return tuple of three float values [0,1]
+                    """
+
+                    color = QColor(color_name)
+                    red = color.red() / 255.0
+                    green = color.green() / 255.0
+                    blue = color.blue() / 255.0
+
+                    return red, green, blue
+
+                def parse_size(tSizePts):
+
+                    return float(tSizePts.split()[0])
+
+                def parse_transparency(tTranspar):
+
+                    return 1.0 - (float(tTranspar[:-1]) / 100.0)  # removes final '%' from input value
+
+                line_style = self.dPlotStyles["line_style"]
+                line_width = parse_size(self.dPlotStyles["line_width"])
+                line_color = parse_color(self.dPlotStyles["line_color"])
+                line_alpha = parse_transparency(self.dPlotStyles["line_transp"])
+
+                marker_style = ltMarkerStyles[self.dPlotStyles["marker_style"]]
+                marker_size = parse_size(self.dPlotStyles["marker_size"])
+                marker_color = parse_color(self.dPlotStyles["marker_color"])
+                marker_transp = parse_transparency(self.dPlotStyles["marker_transp"])
 
                 if bPlotPlanes and plane_data is not None:
                     assert tPlotPlanesFormat in ["great circles", "normal axes"]
                     for plane in plane_data:
                         if tPlotPlanesFormat == "great circles":                            
                             p = Fol(*plane)
-                            stereoplot.plane(p,
-                                             linestyle=self.dPlotStyles["line_style"],
-                                             linewidth=self.dPlotStyles["line_thickn"],
-                                             color=self.dPlotStyles["line_color"],
-                                             alpha=self.dPlotStyles["line_opacity"])
+                            self.currStereonet.plane(p,
+                                                     linestyle=line_style,
+                                                     linewidth=line_width,
+                                                     color=line_color,
+                                                     alpha=line_alpha)
                         else:
                             line_rec = GeolPlane(*plane).as_normalgeolaxis().as_downgeolaxis().vals
                             l = Lin(*line_rec)
-                            stereoplot.line(l,
-                                            marker=self.dPlotStyles["point_style"],
-                                            markersize=self.dPlotStyles["point_size"],
-                                            color=self.dPlotStyles["point_color"],
-                                            alpha=self.dPlotStyles["point_opacity"])
+                            self.currStereonet.line(l,
+                                                    marker=marker_style,
+                                                    markersize=marker_size,
+                                                    color=marker_color,
+                                                    alpha=marker_transp)
                             
                 if bPlotAxes and line_data is not None:
                     assert tPlotAxesFormat in ["poles", "perpendicular planes"]
                     for line_rec in line_data:
                         if tPlotAxesFormat == "poles":                            
                             l = Lin(*line_rec)
-                            stereoplot.line(l,
-                                            marker=self.dPlotStyles["point_style"],
-                                            markersize=self.dPlotStyles["point_size"],
-                                            color=self.dPlotStyles["point_color"],
-                                            alpha=self.dPlotStyles["point_opacity"])
+                            self.currStereonet.line(l,
+                                                    marker=marker_style,
+                                                    markersize=marker_size,
+                                                    color=marker_color,
+                                                    alpha=marker_transp)
                         else:
                             plane = GeolAxis(*line_rec).as_normalgeolplane().vals
                             p = Fol(*plane)
-                            stereoplot.plane(p,
-                                             linestyle=self.dPlotStyles["line_style"],
-                                             linewidth=self.dPlotStyles["line_thickn"],
-                                             color=self.dPlotStyles["line_color"],
-                                             alpha=self.dPlotStyles["line_opacity"])
+                            self.currStereonet.plane(p,
+                                                     linestyle=line_style,
+                                                     linewidth=line_width,
+                                                     color=line_color,
+                                                     alpha=line_alpha)
 
             if bPlotPlanes and not self.lPlaneOrientations:
                 self.warn("No plane data to plot")
@@ -389,11 +386,16 @@ class StereoplotWidget(QWidget):
                 self.warn("No axis data to plot")
                 return
 
-            if tStereoplotStatus == "new stereoplot":
-                self.currStereoplot = StereoplotWidget()
+            if tStereoplotStatus == "new stereonet":
+                self.currStereonet = StereoNet()
+            else:
+                if self.currStereonet.closed:
+                    self.warn("Previous stereonet is closed. Plot in a new one")
+                    return
+
             plot_data_in_stereonet(self.lPlaneOrientations,
                                    self.lAxisOrientations)
-            self.currStereoplot.show()
+            self.currStereonet.show()
 
         if not self.lPlaneOrientations and not self.lAxisOrientations:
             self.warn("No data to plot")
@@ -401,6 +403,7 @@ class StereoplotWidget(QWidget):
 
         dialog = PlotStereonetDialog()
         if dialog.exec_():
+
             plot_dataset(tStereoplotStatus=dialog.cmbStereonetFigure.currentText(),
                          bPlotPlanes=dialog.chkPlanes.isChecked(),
                          tPlotPlanesFormat=dialog.cmbPlanesType.currentText(),
@@ -418,8 +421,19 @@ class StereoplotWidget(QWidget):
     def closeEvent(self, event):
 
         settings = QSettings("alberese", "geocouche")
-        settings.setValue("stereplot_QWidget/Size", self.size())
-        settings.setValue("stereplot_QWidget/Position", self.pos())
+
+        settings.setValue("StereoplotWidget/size", self.size())
+        settings.setValue("StereoplotWidget/position", self.pos())
+
+        settings.setValue("StereoplotWidget/line_color", self.dPlotStyles["line_color"])
+        settings.setValue("StereoplotWidget/line_style", self.dPlotStyles["line_style"])
+        settings.setValue("StereoplotWidget/line_width", self.dPlotStyles["line_width"])
+        settings.setValue("StereoplotWidget/line_transp", self.dPlotStyles["line_transp"])
+
+        settings.setValue("StereoplotWidget/marker_color", self.dPlotStyles["marker_color"])
+        settings.setValue("StereoplotWidget/marker_style", self.dPlotStyles["marker_style"])
+        settings.setValue("StereoplotWidget/marker_size", self.dPlotStyles["marker_size"])
+        settings.setValue("StereoplotWidget/point_transp", self.dPlotStyles["marker_transp"])
 
         self.window_closed.emit()
 

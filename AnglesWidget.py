@@ -54,7 +54,7 @@ class AnglesWidget(QWidget):
 
     def setup_gui(self): 
 
-        self.layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
         
         self.layout.addWidget(self.setup_inputdata())
         self.layout.addWidget(self.setup_processing())
@@ -65,11 +65,11 @@ class AnglesWidget(QWidget):
 
     def setup_inputdata(self):
         
-        grpInput = QGroupBox("Input")
+        grpInput = QGroupBox("Define params")
         
         layout = QVBoxLayout() 
         
-        self.pshDefinePointLayer = QPushButton(self.tr("Define input/output parameters"))
+        self.pshDefinePointLayer = QPushButton(self.tr("I/O params"))
         self.pshDefinePointLayer.clicked.connect(self.user_define_angles_inparams)
         layout.addWidget(self.pshDefinePointLayer)
         
@@ -83,7 +83,7 @@ class AnglesWidget(QWidget):
         
         layout = QGridLayout()
 
-        self.pshCalculateAngles = QPushButton(self.tr("Calculate angles"))
+        self.pshCalculateAngles = QPushButton(self.tr("Calculate"))
         self.pshCalculateAngles.clicked.connect(self.calculate_angles)
         layout.addWidget(self.pshCalculateAngles, 0, 0, 1, 1)
 
@@ -181,8 +181,9 @@ class AnglesWidget(QWidget):
 
     def closeEvent(self, event):
 
-        settings = QSettings("www.malg.eu", "geocouche")
-        settings.setValue("AnglesWidget/Size", self.size())
-        settings.setValue("AnglesWidget/Position", self.pos())
+        settings = QSettings("alberese", "geocouche")
+
+        settings.setValue("AnglesWidget/size", self.size())
+        settings.setValue("AnglesWidget/position", self.pos())
 
         self.sgnWindowClosed.emit()

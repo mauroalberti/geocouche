@@ -150,9 +150,9 @@ class Geocouche(object):
         self.wdgtStereoplot.window_closed.connect(self.stereoplot_off)
 
         settings = QSettings("alberese", "geocouche")
-        if settings.contains("stereplot_QWidget/Size") and settings.contains("stereplot_QWidget/Position"):
-            size = settings.value("stereplot_QWidget/Size", None)
-            pos = settings.value("stereplot_QWidget/Position", None)
+        if settings.contains("StereoplotWidget/size") and settings.contains("StereoplotWidget/position"):
+            size = settings.value("StereoplotWidget/size", None)
+            pos = settings.value("StereoplotWidget/position", None)
             self.wdgtStereoplot.resize(size)
             self.wdgtStereoplot.move(pos)
             self.wdgtStereoplot.show()
@@ -178,9 +178,9 @@ class Geocouche(object):
         #self.interface.addDockWidget(Qt.BottomDockWidgetArea, angles_DockWidget)
 
         settings = QSettings("alberese", "geocouche")
-        if settings.contains("AnglesWidget/Size") and settings.contains("AnglesWidget/Position"):
-            size = settings.value("AnglesWidget/Size", None)
-            pos = settings.value("AnglesWidget/Position", None)
+        if settings.contains("AnglesWidget/size") and settings.contains("AnglesWidget/position"):
+            size = settings.value("AnglesWidget/size", None)
+            pos = settings.value("AnglesWidget/position", None)
             self.wdgtAngles.resize(size)
             self.wdgtAngles.move(pos)
             self.wdgtAngles.show()

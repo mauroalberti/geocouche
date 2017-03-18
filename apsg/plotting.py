@@ -25,6 +25,7 @@ warnings.filterwarnings('ignore', category=mcb.mplDeprecation)
 class StereoNet(object):
     """StereoNet class for Schmidt net plotting"""
     def __init__(self, *args, **kwargs):
+
         self.ticks = kwargs.get('ticks', True)
         self.grid = kwargs.get('grid', True)
         self.ncols = kwargs.get('ncols', 1)
@@ -37,7 +38,7 @@ class StereoNet(object):
         self.fig.set_size_inches(8 * self.ncols, 6)
         self._title = self.fig.suptitle(kwargs.get('title', ''))
         self.cla()
-        # optionally immidiately plot passed objects
+        # optionally immediately plot passed objects
         if args:
             for arg in args:
                 if type(arg) in [Group, FaultSet]:
