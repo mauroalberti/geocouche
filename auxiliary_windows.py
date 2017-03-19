@@ -420,6 +420,8 @@ class AnglesSrcPtLyrDia(QDialog):
 
         super(AnglesSrcPtLyrDia, self).__init__(parent)
 
+        self.tFieldUndefined = tFieldUndefined
+
         self.setup_gui()
 
     def setup_gui(self):

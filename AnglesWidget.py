@@ -32,9 +32,103 @@ from osgeo import ogr
 from geosurf.qgs_tools import pt_geoms_attrs, loaded_point_layers
 from geosurf.spatial import GeolPlane
 from geosurf.geo_io import shapefile_create, ogr_write_point_result
-from auxiliary_windows import AnglesSrcPtLyrDia
-from structural_userdefs import get_anglecalc_input_params, formally_valid_angles_params, \
-                                parse_angles_geodata, get_angle_data_type
+from auxiliary_windows import AnglesSrcPtLyrDia, tFieldUndefined
+
+
+def formally_valid_angles_params(structural_input_params):
+
+    for param_key in structural_input_params:
+        if structural_input_params[param_key] is None:
+            return False
+    return True
+
+
+def get_anglecalc_input_params(dialog):
+
+    def parse_field_choice(val, choose_message):
+
+        if val == choose_message:
+            return None
+        else:
+            return val
+
+    point_layer = dialog.point_layer
+
+    plane_azimuth_type = dialog.cmbInputPlaneOrientAzimType.currentText()
+    plane_azimuth_name_field = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
+                                                  tFieldUndefined)
+
+    plane_dip_type = dialog.cmbInputPlaneOrientDipType.currentText()
+    plane_dip_name_field = parse_field_choice(dialog.cmbInputPlaneOrientDipType.currentText(),
+                                              tFieldUndefined)
+
+    target_dipdir = dialog.spnTargetAttDipDir.value()
+    target_dipangle = dialog.spnTargetAttDipAng.value()
+
+    output_shapefile_path = dialog.lnedtOutFilename.text()
+
+    return point_layer, dict(plane_azimuth_type=plane_azimuth_type,
+                             plane_azimuth_name_field=plane_azimuth_name_field,
+                             plane_dip_type=plane_dip_type,
+                             plane_dip_name_field=plane_dip_name_field,
+                             target_dipdir=target_dipdir,
+                             target_dipangle=target_dipangle,
+                             output_shapefile_path=output_shapefile_path)
+
+
+def get_angle_data_type(structural_input_params):
+
+    # define type for planar data
+    if structural_input_params["plane_azimuth_name_field"] is not None and \
+                    structural_input_params["plane_dip_name_field"] is not None:
+        planar_data = True
+        if structural_input_params["plane_azimuth_type"] == "dip direction":
+            planar_az_type = "dip_dir"
+        elif structural_input_params["plane_azimuth_type"] == "strike rhr":
+            planar_az_type = "strike_rhr"
+        else:
+            raise Exception("Error with input azimuth type")
+        planar_dip_type = "dip"
+    else:
+        planar_data = False
+        planar_az_type = None
+        planar_dip_type = None
+
+    return dict(planar_data=planar_data,
+                planar_az_type=planar_az_type,
+                planar_dip_type=planar_dip_type)
+
+
+
+def parse_angles_geodata(input_data_types, structural_data):
+
+    def parse_azimuth_values(azimuths, az_type):
+
+        if az_type == "dip_dir":
+            offset = 0.0
+        elif az_type == "strike_rhr":
+            offset = 90.0
+        else:
+            raise Exception("Invalid azimuth data type")
+
+        return map(lambda val: (val + offset) % 360.0, azimuths)
+
+    xy_vals = [(float(rec[0]), float(rec[1])) for rec in structural_data]
+
+    try:
+        if input_data_types["planar_data"]:
+            azimuths = [float(rec[2]) for rec in structural_data]
+            dipdir_vals = parse_azimuth_values(azimuths,
+                                                input_data_types["planar_az_type"])
+            dipangle_vals = [float(rec[3]) for rec in structural_data]
+            plane_vals = zip(dipdir_vals, dipangle_vals)
+        else:
+            plane_vals = None
+    except Exception as e:
+        raise Exception("Error in planar data parsing: {}".format(e.message))
+
+    return xy_vals, plane_vals
+
 
 
 class AnglesWidget(QWidget):
