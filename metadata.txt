@@ -1,8 +1,8 @@
 [general]
 name=geocouche
-description=Create stereonets from geological data
+description=Processes geological meso-structures
 category=Geology 
-version=0.0.1
+version=0.0.2
 experimental=True
 qgisMinimumVersion=2.0
 author=Martin Laloux, Mauro Alberti
@@ -14,6 +14,7 @@ icon=./icon.png
 ; start of optional metadata
 changelog=
   0.0.1 : - first release
+  0.0.2 : - implemented plot styles; GUI modified
 
 
 ; tags are in comma separated value format, spaces are allowed

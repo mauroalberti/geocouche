@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>geocouche</title>
+		<style>
+			body { padding: 10px; }		
+			figure { padding: 10px; }	
+			img { padding: 15px; }			
+		</style>
+	<head>
+	
+	<body>
+	
+		<h1>geocouche</h1>
+		
+		<div>
+			<b>geocouche</b> is a GGIS plugin for processing geological meso-structures.
+			<br />Currently, it can:
+			<ul>
+				<li>calculate the angles between planes stored in a layer and a reference plane</li>
+				<li>plot data from layers or texts in stereonets</li>			
+			</ul>
+			These two tools are available in the QGIS plugin interface (Fig. 1).
+			
+			<figure>
+				<img src="ims/screenshot_01.png" alt="plugin QGIS interface">
+				<figcaption>Fig. 1. <b>geocouche</b> interface.</figcaption>
+			</figure>	
+			
+			The two tools are:
+			<ul>
+				<li>Geological angles</li>	
+				<li>Geological stereonets</li>		
+			</ul>	
+			
+		</div>
+		
+		<h2>Geological angles</h2>	
+	
+		This tool allows to calculate the angles (as degrees) between a reference plane and the features in a point layer (Fig. 2).
+		<br />It can be applied to determine the degree of misalignement between a reference (for instance, regional) measure and local geological measures.
+		
+		<figure>
+			<img src="ims/angles_01.png" alt="Calculate Angles interface">
+			<figcaption>Fig. 2. Geological angles calculation interface.</figcaption>
+		</figure>		
+		
+		The user has to define the two fields storing the azimuth (dip direction or RHR strike) and the dip angle of each feature,
+		the attitude of the reference plane, and the name of the output shapefile with a new field storing the calculated angle (Fig. 3).
+		
+		<figure>
+			<img src="ims/angles_02.png" alt="Definition of parameters">
+			<figcaption>Fig. 3. Definition of parameters for angle calculation.</figcaption>
+		</figure>
+
+		<h2>Geological stereonets</h2>	
+	
+		It allows to produce stereonets depicting geological plane and axis attitudes (Fig. 4).
+		There are three steps:
+		<ul>
+			<li>Choice of input data</li>
+			<li>Definition of plot style</li>
+			<li>Data plotting</li>
+		</ul>
+		<figure>
+			<img src="ims/stereonet_01.png" alt="Stereonet interface">
+			<figcaption>Fig. 4. Stereonet interface.</figcaption>
+		</figure>	
+		
+		<h3>Choice of input data</h3>
+		
+		It is possible to use input data from data stored in a point layer (<i>Layer</i> tab, Fig. 5)
+		or to use text input (<i>Text</i> tab, Fig. 6).
+		
+		<h4>Input from point layer</h4>
+		
+		When using a point layer (already loaded in the TOC), plane and/or axis attitudes
+		are defined via the fields storing their values (Fig. 5).
+		
+		<figure>
+			<img src="ims/stereonet_02.png" alt="Stereonet interface">
+			<figcaption>Fig. 5. Input from point layer interface.</figcaption>
+		</figure>	
+
+		<h4>Input from text</h4>
+		
+		The input can be inserted into a text window (Fig. 6), defining if data consist of:
+		<ul>
+			<li>planes</li>
+			<li>axes</li>
+			<li>planes and axes</li>
+		</ul>		
+		Another option to take care of for plane data, is whether orientations are expressed
+		using dip direction or RHR strike.
+		
+		<figure>
+			<img src="ims/stereonet_03.png" alt="Stereonet interface">
+			<figcaption>Fig. 6. Input from text interface.</figcaption>
+		</figure>	
+
+		<h3>Plot style</h3>
+		
+		Styles can be defined for both great circles and poles: color, width/size, line/marker style, and transparency.
+		<br />Settings are stored in memory.
+		
+		<figure>
+			<img src="ims/stereonet_04.png" alt="Stereonet interface">
+			<figcaption>Fig. 7. Plot style interface.</figcaption>
+		</figure>
+
+		<h3>Stereonet plotting</h3>
+			
+		Plots can use a new or a pre-existing stereonet (provided it was not closed) (Fig. 8).
+		<br />Planar can be plotted as great circles or as plane normals, axes as poles or as normal great circles.
+		
+		<figure>
+			<img src="ims/stereonet_05.png" alt="Stereonet interface">
+			<figcaption>Fig. 8. Stereonet plot interface.</figcaption>
+		</figure>
+
+		An example of stereonet is shown in Fig. 9.
+		
+		<figure>
+			<img src="ims/stereonet_06.png" alt="Stereonet interface">
+			<figcaption>Fig. 9. Stereonet example.</figcaption>
+		</figure>
+
+		<br /><br />
+		<div style="font-size: 85%; font-style: italic;">
+		-----
+		<br /><br />
+		Doc version 2017-03-19, by Mauro Alberti - <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a>
+		</div>
+
+		<br /><br />
+		
+	<body>
+
+
+</html>

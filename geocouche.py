@@ -22,6 +22,9 @@
  ***************************************************************************/
 """
 
+import os
+import webbrowser
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -128,7 +131,7 @@ class Geocouche(object):
 
         self.actStereoplot = self.add_action(
             ':/plugins/geocouche/icons/stereoplot.png',
-            text='Geologic stereoplots',
+            text='Geologic stereonets',
             callback=self.open_stereoplot_widget,
             parent=self.interface.mainWindow())
         self.bStereoplotWidgetOpen = False
@@ -140,10 +143,16 @@ class Geocouche(object):
             parent=self.interface.mainWindow())
         self.bAnglesWidgetOpen = False
 
+        self.actHelp = self.add_action(
+            ':/plugins/geocouche/icons/help.ico',
+            text='Help',
+            callback=self.open_html_help,
+            parent=self.interface.mainWindow())
+
     def open_stereoplot_widget(self):
         
         if self.bStereoplotWidgetOpen:
-            self.warn("Geologic stereoplots already open")
+            self.warn("Geologic stereonets already open")
             return
 
         self.wdgtStereoplot = StereoplotWidget(self.canvas, self.tPluginName)
@@ -167,15 +176,8 @@ class Geocouche(object):
             self.warn("Geological Angles already open")
             return
 
-        #angles_DockWidget = QDockWidget('Geological Angles', self.interface.mainWindow())
-        #angles_DockWidget.setAttribute(Qt.WA_DeleteOnClose)
-        #angles_DockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
         self.wdgtAngles = AnglesWidget(self.canvas, self.tPluginName)
         self.wdgtAngles.sgnWindowClosed.connect(self.angles_off)
-
-        #angles_DockWidget.setWidget(self.StereoplotWidget)
-        #angles_DockWidget.destroyed.connect(self.closeEvent)
-        #self.interface.addDockWidget(Qt.BottomDockWidgetArea, angles_DockWidget)
 
         settings = QSettings("alberese", "geocouche")
         if settings.contains("AnglesWidget/size") and settings.contains("AnglesWidget/position"):
@@ -188,6 +190,10 @@ class Geocouche(object):
             self.wdgtAngles.show()
 
         self.bAnglesWidgetOpen = True
+
+    def open_html_help(self):
+
+        webbrowser.open('{}/help/geocouche.html'.format(os.path.dirname(__file__)), new=True)
 
     def stereoplot_off(self):
 
