@@ -62,9 +62,9 @@ class StereoplotInputDialog(QDialog):
         grpPlane = QGroupBox("Plane attitudes")
         lytPlane = QGridLayout()
 
-        self.cmbInputPlaneOrAzimType = QComboBox()
-        self.cmbInputPlaneOrAzimType.addItems(ltInputPlaneAzimuthTypes)
-        lytPlane.addWidget(self.cmbInputPlaneOrAzimType, 0, 0, 1, 1)
+        self.cmbInputLyrPlaneOrAzimType = QComboBox()
+        self.cmbInputLyrPlaneOrAzimType.addItems(ltInputPlaneAzimuthTypes)
+        lytPlane.addWidget(self.cmbInputLyrPlaneOrAzimType, 0, 0, 1, 1)
 
         self.cmbInputPlaneAzimSrcFld = QComboBox()
         lytPlane.addWidget(self.cmbInputPlaneAzimSrcFld, 0, 1, 1, 1)

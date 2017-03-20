@@ -224,7 +224,7 @@ class StereoplotWidget(QWidget):
                     return
                 dInputLayerParams = dict()
                 try:
-                    dInputLayerParams["plane_azimuth_type"] = dialog.cmbInputPlaneOrAzimType.currentText()
+                    dInputLayerParams["plane_azimuth_type"] = dialog.cmbInputLyrPlaneOrAzimType.currentText()
 
                     dInputLayerParams["plane_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
                                                                                         tFieldUndefined)
@@ -250,9 +250,9 @@ class StereoplotWidget(QWidget):
 
                 # get used field names in the point attribute table
                 ltAttitudeFldNms = [dInputLayerParams["plane_azimuth_name_field"],
-                                   dInputLayerParams["plane_dip_name_field"],
-                                   dInputLayerParams["axis_azimuth_name_field"],
-                                   dInputLayerParams["axis_dip_name_field"]]
+                                    dInputLayerParams["plane_dip_name_field"],
+                                    dInputLayerParams["axis_azimuth_name_field"],
+                                    dInputLayerParams["axis_dip_name_field"]]
 
                 # get input data presence and type
                 lGeoStructurData = pt_geoms_attrs(lyrInputLayer, ltAttitudeFldNms)

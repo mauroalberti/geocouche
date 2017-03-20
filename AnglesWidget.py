@@ -8,7 +8,7 @@
 -------------------
 
     Begin                : 2015.04.18
-    Date                 : 2017.02.25
+    Date                 : 2017.03.21
     Copyright            : (C) 2015-2017 by Mauro Alberti
     Email                : alberti dot m65 at gmail dot com
 
@@ -59,7 +59,7 @@ def get_anglecalc_input_params(dialog):
                                                   tFieldUndefined)
 
     plane_dip_type = dialog.cmbInputPlaneOrientDipType.currentText()
-    plane_dip_name_field = parse_field_choice(dialog.cmbInputPlaneOrientDipType.currentText(),
+    plane_dip_name_field = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
                                               tFieldUndefined)
 
     target_dipdir = dialog.spnTargetAttDipDir.value()
@@ -99,7 +99,6 @@ def get_angle_data_type(structural_input_params):
                 planar_dip_type=planar_dip_type)
 
 
-
 def parse_angles_geodata(input_data_types, structural_data):
 
     def parse_azimuth_values(azimuths, az_type):
@@ -128,7 +127,6 @@ def parse_angles_geodata(input_data_types, structural_data):
         raise Exception("Error in planar data parsing: {}".format(e.message))
 
     return xy_vals, plane_vals
-
 
 
 class AnglesWidget(QWidget):
@@ -240,6 +238,7 @@ class AnglesWidget(QWidget):
 
         target_plane_dipdir = self.anglesAnalysisParams["target_dipdir"]
         target_plane_dipangle = self.anglesAnalysisParams["target_dipangle"]
+
         trgt_geolplane = GeolPlane(target_plane_dipdir, target_plane_dipangle)
         angles = []
         for plane_or in plane_orientations:
@@ -248,7 +247,7 @@ class AnglesWidget(QWidget):
         fields_dict_list = [dict(name='id', ogr_type=ogr.OFTInteger),
                             dict(name='x', ogr_type=ogr.OFTReal),
                             dict(name='y', ogr_type=ogr.OFTReal),
-                            dict(name='results', ogr_type=ogr.OFTReal)]
+                            dict(name='angles', ogr_type=ogr.OFTReal)]
 
         point_shapefile, point_shapelayer = shapefile_create(self.anglesAnalysisParams["output_shapefile_path"],
                                                              ogr.wkbPoint,
