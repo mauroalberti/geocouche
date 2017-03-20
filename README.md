@@ -21,3 +21,4 @@ State
  - [2017-03-18] changed plot style management and removed a few minor bugs - help still to be created and pre-release testings to be performed
  - [2017-03-19] created help - to be tested as RC 0.0.2 and merging into Master
  - [2017-03-19] removed bug in angle calculation tool 
+ - [2017-03-20] removed bugs in plotting from RHR strike-based inputs
