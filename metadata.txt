@@ -1,6 +1,7 @@
 [general]
 name=geocouche
 description=Processes geological meso-structures
+about=Structural geology processing of meso-structural data: calculates anglea and plot stereonets
 category=Geology 
 version=1.0
 experimental=False
