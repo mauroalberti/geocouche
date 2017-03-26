@@ -2,8 +2,8 @@
 name=geocouche
 description=Processes geological meso-structures
 category=Geology 
-version=0.0.2
-experimental=True
+version=1.0
+experimental=False
 qgisMinimumVersion=2.0
 author=Martin Laloux, Mauro Alberti
 email=alberti.m65@gmail.com
@@ -14,7 +14,8 @@ icon=./icon.png
 ; start of optional metadata
 changelog=
   0.0.1 : - first release
-  0.0.2 : - implemented plot styles; GUI modified
+  0.0.2 : - implemented plot styles; GUI modified; first stable Release Candidate
+  1.0.0 : - first stable release: calculate geological angles, plot great circles and poles in stereonet
 
 
 ; tags are in comma separated value format, spaces are allowed

@@ -145,7 +145,7 @@ class StereoplotInputDialog(QDialog):
         self.cmbInputDataType.setCurrentIndex(2)
         lytInputValues.addWidget(self.cmbInputDataType, 0, 1, 1, 1)
 
-        lytInputValues.addWidget(QLabel("Plane azimuth is"), 1, 0, 1, 1)
+        lytInputValues.addWidget(QLabel("Plane azimuth refers to"), 1, 0, 1, 1)
         self.cmbInputPlaneOrAzimType = QComboBox()
         self.cmbInputPlaneOrAzimType.addItems(ltInputPlaneAzimuthTypes)
         lytInputValues.addWidget(self.cmbInputPlaneOrAzimType, 1, 1, 1, 1)
