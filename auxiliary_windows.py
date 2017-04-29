@@ -1,10 +1,10 @@
-
 from collections import OrderedDict
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.gui import QgsColorButtonV2
 
-from geosurf.qgs_tools import loaded_point_layers, pt_geoms_attrs
+from gis_utils.qgs_tools import loaded_point_layers
 
 ltInputDataTypes = ("planes", "axes", "planes & axes")
 ltInputPlaneAzimuthTypes = ["dip direction", "strike rhr"]

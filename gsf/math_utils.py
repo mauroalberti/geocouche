@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 
 import numpy as np
+
 
 def isclose(a, b, rtol=1e-012, atol=1e-12, equal_nan=False, equal_inf=False):
     """

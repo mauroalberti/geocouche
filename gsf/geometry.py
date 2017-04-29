@@ -1326,7 +1326,7 @@ class GPlane(object):
         @param  srcDipAngle:  Dip angle of the plane (0-90°).
         @type  srcDipAngle:  number or string convertible to float.
            
-        @return:  GeolPlane.
+        @return:  GPlane.
 
         Example:
           >>> GPlane(0, 90)

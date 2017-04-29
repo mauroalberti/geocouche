@@ -26,13 +26,12 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-
 from osgeo import ogr
 
-from geosurf.qgs_tools import pt_geoms_attrs, loaded_point_layers
-from geosurf.spatial import GeolPlane
-from geosurf.geo_io import shapefile_create, ogr_write_point_result
 from auxiliary_windows import AnglesSrcPtLyrDia, tFieldUndefined
+from geosurf.spatial import GPlane
+from gis_utils.geo_io import shapefile_create, ogr_write_point_result
+from gis_utils.qgs_tools import pt_geoms_attrs, loaded_point_layers
 
 
 def formally_valid_angles_params(structural_input_params):
@@ -239,10 +238,10 @@ class AnglesWidget(QWidget):
         target_plane_dipdir = self.anglesAnalysisParams["target_dipdir"]
         target_plane_dipangle = self.anglesAnalysisParams["target_dipangle"]
 
-        trgt_geolplane = GeolPlane(target_plane_dipdir, target_plane_dipangle)
+        trgt_geolplane = GPlane(target_plane_dipdir, target_plane_dipangle)
         angles = []
         for plane_or in plane_orientations:
-            angles.append(trgt_geolplane.angle_degr(GeolPlane(*plane_or)))
+            angles.append(trgt_geolplane.angle_degr(GPlane(*plane_or)))
 
         fields_dict_list = [dict(name='id', ogr_type=ogr.OFTInteger),
                             dict(name='x', ogr_type=ogr.OFTReal),

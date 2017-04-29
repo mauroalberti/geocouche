@@ -3,7 +3,7 @@ name=geocouche
 description=Processes geological meso-structures
 about=geocouche is a GGIS plugin for processing the orientations of geological structures, based on the module apsg by Ondrej Lexa. Currently, it can: a) calculate the angles between planes stored in a layer and a reference plane, and b) create stereonets from plane/pole data stored in a point layer or directly as texts.
 category=Geology 
-version=1.0
+version=1.1.0
 experimental=False
 qgisMinimumVersion=2.0
 author=Martin Laloux, Mauro Alberti
@@ -17,6 +17,8 @@ changelog=
   0.0.1 : - first release
   0.0.2 : - implemented plot styles; GUI modified; first stable Release Candidate
   1.0.0 : - first stable release: calculate geological angles, plot great circles and poles in stereonet
+  1.1.0 : - integration of module "gsf" (vers. 0.1.0) and related restructuration of "geosurf" in independent modules
+
 
 
 ; tags are in comma separated value format, spaces are allowed

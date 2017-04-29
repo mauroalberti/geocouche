@@ -1,9 +1,11 @@
+
 from __future__ import division
 
 import numpy as np
 
 
 class Profile_Elements(object):
+
     def __init__(self):
 
         self.profile_source_type = None
@@ -182,6 +184,7 @@ class TopoProfiles(object):
         return map(np.fabs, self.dir_slopes)
 
 class PlaneAttitude(object):
+
     def __init__(self, rec_id, source_point_3d, source_geol_plane, point_3d, slope_rad, dwnwrd_sense, sign_hor_dist):
         self.id = rec_id
         self.src_pt_3d = source_point_3d

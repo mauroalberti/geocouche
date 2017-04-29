@@ -29,7 +29,7 @@ from PyQt4.QtGui import QColor
 from apsg import *
 
 from auxiliary_windows import *
-from geosurf.spatial import GeolPlane, GeolAxis
+from geosurf.spatial import GPlane, GAxis
 
 
 
@@ -352,7 +352,7 @@ class StereoplotWidget(QWidget):
                                                      color=line_color,
                                                      alpha=line_alpha)
                         else:
-                            line_rec = GeolPlane(*plane).as_normalgeolaxis().as_downgeolaxis().vals
+                            line_rec = GPlane(*plane).as_normalgeolaxis().as_downgeolaxis().vals
                             l = Lin(*line_rec)
                             self.currStereonet.line(l,
                                                     marker=marker_style,
@@ -371,7 +371,7 @@ class StereoplotWidget(QWidget):
                                                     color=marker_color,
                                                     alpha=marker_transp)
                         else:
-                            plane = GeolAxis(*line_rec).as_normalgeolplane().vals
+                            plane = GAxis(*line_rec).as_normalgeolplane().vals
                             p = Fol(*plane)
                             self.currStereonet.plane(p,
                                                      linestyle=line_style,
