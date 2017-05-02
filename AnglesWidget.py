@@ -28,10 +28,10 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from osgeo import ogr
 
-from auxiliary_windows import AnglesSrcPtLyrDia, tFieldUndefined
-from geosurf.spatial import GPlane
-from gis_utils.geo_io import shapefile_create, ogr_write_point_result
-from gis_utils.qgs_tools import pt_geoms_attrs, loaded_point_layers
+from .auxiliary_windows import AnglesSrcPtLyrDia, tFieldUndefined
+from .gsf.geometry import GPlane
+from .gis_utils.gdal_utils import shapefile_create, ogr_write_point_result
+from .gis_utils.qgs_tools import pt_geoms_attrs, loaded_point_layers
 
 
 def formally_valid_angles_params(structural_input_params):
@@ -241,12 +241,14 @@ class AnglesWidget(QWidget):
         trgt_geolplane = GPlane(target_plane_dipdir, target_plane_dipangle)
         angles = []
         for plane_or in plane_orientations:
-            angles.append(trgt_geolplane.angle_degr(GPlane(*plane_or)))
+            angles.append(trgt_geolplane.angle(GPlane(*plane_or)))
 
         fields_dict_list = [dict(name='id', ogr_type=ogr.OFTInteger),
                             dict(name='x', ogr_type=ogr.OFTReal),
                             dict(name='y', ogr_type=ogr.OFTReal),
-                            dict(name='angles', ogr_type=ogr.OFTReal)]
+                            dict(name='azimuth', ogr_type=ogr.OFTReal),
+                            dict(name='dip_angle', ogr_type=ogr.OFTReal),
+                            dict(name='angle', ogr_type=ogr.OFTReal)]
 
         point_shapefile, point_shapelayer = shapefile_create(self.anglesAnalysisParams["output_shapefile_path"],
                                                              ogr.wkbPoint,
@@ -254,14 +256,22 @@ class AnglesWidget(QWidget):
 
         lFields = [field_dict["name"] for field_dict in fields_dict_list]
 
-        rngIds = range(len(angles))
+        rngIds = range(1, len(angles) + 1)
         x = map(lambda val: val[0], xy_coords)
         y = map(lambda val: val[1], xy_coords)
-        llRecValues = zip(rngIds, x, y, angles)
+        plane_az = map(lambda val: val[0], plane_orientations)
+        plane_dip = map(lambda val: val[1], plane_orientations)
+
+        llRecValues = zip(rngIds,
+                          x,
+                          y,
+                          plane_az,
+                          plane_dip,
+                          angles)
+
         ogr_write_point_result(point_shapelayer, lFields, llRecValues, geom_type=ogr.wkbPoint)
 
         self.info("Output shapefile written")
-
 
     def info(self, msg):
         

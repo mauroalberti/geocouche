@@ -17,8 +17,8 @@ from PyQt4.QtGui import *
 
 import resources
 
-from StereoplotWidget import StereoplotWidget
-from AnglesWidget import AnglesWidget
+from .StereoplotWidget import StereoplotWidget
+from .AnglesWidget import AnglesWidget
 
 
 class Geocouche(object):
@@ -142,9 +142,17 @@ class Geocouche(object):
             self.warn("Geologic stereonets already open")
             return
 
-        self.wdgtStereoplot = StereoplotWidget(self.canvas, self.tPluginName)
-        self.wdgtStereoplot.window_closed.connect(self.stereoplot_off)
+        dwgtStereoplotDockWidget = QDockWidget(self.tPluginName, self.interface.mainWindow())
+        dwgtStereoplotDockWidget.setAttribute(Qt.WA_DeleteOnClose)
+        dwgtStereoplotDockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
 
+        self.wdgtStereoplot = StereoplotWidget(self.canvas, self.tPluginName)
+        dwgtStereoplotDockWidget.setWidget(self.wdgtStereoplot)
+        dwgtStereoplotDockWidget.destroyed.connect(self.stereoplot_off)
+        self.interface.addDockWidget(Qt.BottomDockWidgetArea, dwgtStereoplotDockWidget)
+
+        #self.wdgtStereoplot.window_closed.connect(self.stereoplot_off)
+        """
         settings = QSettings("alberese", "geocouche")
         if settings.contains("StereoplotWidget/size") and settings.contains("StereoplotWidget/position"):
             size = settings.value("StereoplotWidget/size", None)
@@ -154,6 +162,8 @@ class Geocouche(object):
             self.wdgtStereoplot.show()
         else:
             self.wdgtStereoplot.show()
+        """
+
 
         self.bStereoplotWidgetOpen = True
 

@@ -690,7 +690,7 @@ class Vect(object):
           >>> Vect(1, 0, 0).vp(Vect(1, 0, 0))
           Vect(0.0000, 0.0000, 0.0000)
           >>> Vect(1, 0, 0).vp(Vect(-1, 0, 0))
-          Vect(0.0000, -0.0000, 0.0000)
+          Vect(0.0000, 0.0000, 0.0000)
         """
 
         return Vect.from_array(np.cross(self.v, another.v))
@@ -1052,6 +1052,74 @@ class GAxis(GVect):
         """
 
         return self.as_vect().normal_gplane
+
+    @property
+    def is_upward(self):
+        """
+        Check whether the instance is pointing upward or horizontal.
+
+        Examples:
+          >>> GAxis(10, 15).is_upward
+          False
+          >>> GAxis(257.4, 0.0).is_upward
+          False
+          >>> GAxis(90, -45).is_upward
+          True
+        """
+
+        return self.as_vect().is_upward
+
+    @property
+    def is_downward(self):
+        """
+        Check whether the instance is pointing downward or horizontal.
+
+        Examples:
+          >>> GAxis(10, 15).is_downward
+          True
+          >>> GAxis(257.4, 0.0).is_downward
+          False
+          >>> GAxis(90, -45).is_downward
+          False
+        """
+
+        return self.as_vect().is_downward
+
+    @property
+    def upward(self):
+        """
+        Return upward-point geological axis.
+
+        Examples:
+          >>> GAxis(90, -45).upward
+          GAxis(090.00, -45.00)
+          >>> GAxis(180, 45).upward
+          GAxis(000.00, -45.00)
+          >>> GAxis(0, 0).upward
+          GAxis(180.00, -00.00)
+          >>> GAxis(0, 90).upward
+          GAxis(180.00, -90.00)
+        """
+
+        return self.as_vect().upward.as_axis()
+
+    @property
+    def downward(self):
+        """
+        Return downward-pointing geological vector.
+
+        Examples:
+          >>> GAxis(90, -45).downward
+          GAxis(270.00, +45.00)
+          >>> GAxis(180, 45).downward
+          GAxis(180.00, +45.00)
+          >>> GAxis(0, 0).downward
+          GAxis(180.00, -00.00)
+          >>> GAxis(0, 90).downward
+          GAxis(000.00, +90.00)
+        """
+
+        return self.as_vect().downward.as_axis()
 
     def common_plane(self, another):
         """
@@ -1434,7 +1502,7 @@ class GPlane(object):
     @property
     def normal(self):
         """
-        Return the geological axis normal to the geological plane,
+        Return the geological vector normal to the geological plane,
         pointing in the same direction as the geological plane.
 
         Example:
@@ -1484,7 +1552,7 @@ class GPlane(object):
 
     def rake_to_gv(self, rake):
         """
-        Calculate GVect given a Gplane instance and a rake value.
+        Calculate GVect given a GPlane instance and a rake value.
         The rake is defined according to the Aki and Richards, 1980 conventions:
         rake = 0° -> left-lateral
         rake = 90° -> reverse
