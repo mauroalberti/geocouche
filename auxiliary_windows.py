@@ -21,12 +21,15 @@ tFieldUndefined = "---"
 ltLineStyles = ["solid", "dashed", "dashdot", "dotted"]
 ltMarkerStyles = OrderedDict([("circle", "o"), ("square", "s"), ("diamond", "D"), ("triangle", "^")])
 
+ltFileFormats = ["pdf", "png", "svg", "tif"]
+liDpiResolutions = [200, 400, 600, 800, 1000, 1200]
 
-class StereoplotInputDialog(QDialog):
+
+class StereoplotInputDlg(QDialog):
 
     def __init__(self, llyrLoadedPointLayers, parent=None):
 
-        super(StereoplotInputDialog, self).__init__(parent)
+        super(StereoplotInputDlg, self).__init__(parent)
         self.llyrLoadedPointLayers = llyrLoadedPointLayers
 
         layout = QGridLayout()
@@ -233,15 +236,15 @@ class StereoplotInputDialog(QDialog):
             structural_combox.addItems(ltFieldNames)
 
 
-class PlotStyleDialog(QDialog):
+class PlotStyleDlg(QDialog):
 
     def __init__(self, dPlotStyles, parent=None):
 
-        super(PlotStyleDialog, self).__init__(parent)
+        super(PlotStyleDlg, self).__init__(parent)
 
         self.dPlotStyles = dPlotStyles
 
-        settings = QSettings("alberese", "geocouche")
+        # settings = QSettings("alberese", "geocouche")
 
         layout = QVBoxLayout()
 
@@ -370,11 +373,11 @@ class PlotStyleDialog(QDialog):
         self.setWindowTitle("Plot style")
 
 
-class PlotStereonetDialog(QDialog):
+class PlotStereonetDlg(QDialog):
 
     def __init__(self, parent=None):
 
-        super(PlotStereonetDialog, self).__init__(parent)
+        super(PlotStereonetDlg, self).__init__(parent)
 
         layout = QVBoxLayout()
 
@@ -446,11 +449,124 @@ class PlotStereonetDialog(QDialog):
         self.setWindowTitle("Stereonet plot")
 
 
-class AnglesSrcPtLyrDia(QDialog):
+class SaveFigureDlg(QDialog):
+
+    def __init__(self, dFigureParams, parent=None):
+
+        super(SaveFigureDlg, self).__init__(parent)
+
+        self.dFigureParams = dFigureParams
+
+        layout = QVBoxLayout()
+
+        # output format settings
+
+        grpFormatSettings = QGroupBox("Output format")
+        lytFormatSettings = QGridLayout()
+
+        # format
+
+        lytFormatSettings.addWidget(QLabel("File format"), 0, 0, 1, 1)
+        self.cmbFileFormat = QComboBox()
+        self.cmbFileFormat.insertItems(0, ltFileFormats)
+        sFileFormat = self.dPlotStyles["file_format"]
+        iCurrFileFrmtNdx = ltFileFormats.index(sFileFormat) if sFileFormat in ltFileFormats else 0
+        self.cmbFileFormat.setCurrentIndex(iCurrFileFrmtNdx)
+        lytFormatSettings.addWidget(self.cmbFileFormat, 0, 1, 1, 1)
+
+        # dpi (for rasters)
+
+        lytFormatSettings.addWidget(QLabel("Dpi (for rasters"), 1, 0, 1, 1)
+        self.cmbDpiResolution = QComboBox()
+        self.cmbDpiResolution.insertItems(0, liDpiResolutions)
+        iCurrDpiResolution = self.dPlotStyles["dpi_resolution"]
+        iCurrDpiResolNdx = ltFileFormats.index(iCurrDpiResolution) if iCurrDpiResolution in ltFileFormats else 0
+        self.cmbDpiResolution.setCurrentIndex(iCurrDpiResolNdx)
+        lytFormatSettings.addWidget(self.cmbDpiResolution, 1, 1, 1, 1)
+
+        # set/add to layout
+
+        grpFormatSettings.setLayout(lytFormatSettings)
+        layout.addWidget(grpFormatSettings)
+
+        # output file path
+
+        grpPoles = QGroupBox("Poles")
+        lytPoles = QGridLayout()
+
+        # marker color
+
+        lytPoles.addWidget(QLabel("Marker color"), 0, 0, 1, 1)
+        self.btnPointColor = QgsColorButtonV2()
+        point_color = self.dPlotStyles["marker_color"]
+        self.btnPointColor.setColor(QColor(point_color))
+        lytPoles.addWidget(self.btnPointColor, 0, 1, 1, 1)
+
+        # marker style
+
+        lytPoles.addWidget(QLabel("Marker style"), 0, 2, 1, 1)
+        self.cmbPointStyle = QComboBox()
+        self.cmbPointStyle.insertItems(0, ltMarkerStyles.keys())
+        point_style = self.dPlotStyles["marker_style"]
+        point_style_ndx = ltMarkerStyles.keys().index(point_style) if point_style in ltMarkerStyles.keys() else 0
+        self.cmbPointStyle.setCurrentIndex(point_style_ndx)
+        lytPoles.addWidget(self.cmbPointStyle, 0, 3, 1, 1)
+
+        # marker size
+
+        lytPoles.addWidget(QLabel("Marker size"), 1, 0, 1, 1)
+        lnPointSizes = [2, 4, 6, 8, 10, 15, 20]
+        self.cmbPointSize = QComboBox()
+        ltPointSizeVals = [str(val) + " pt(s)" for val in lnPointSizes]
+        self.cmbPointSize.insertItems(0, ltPointSizeVals)
+        point_size = self.dPlotStyles["marker_size"]
+        point_style_ndx = ltPointSizeVals.index(point_size) if point_size in ltPointSizeVals else 2
+        self.cmbPointSize.setCurrentIndex(point_style_ndx)
+        lytPoles.addWidget(self.cmbPointSize, 1, 1, 1, 1)
+
+        # marker transparency
+
+        lytPoles.addWidget(QLabel("Marker transp."), 1, 2, 1, 1)
+        lnPointTransparencies = [0, 25, 50, 75]
+        self.cmbPointTransp = QComboBox()
+        ltPointTranspPrcntVals = [str(val) + "%" for val in lnPointTransparencies]
+        self.cmbPointTransp.insertItems(0, ltPointTranspPrcntVals)
+        point_transp = self.dPlotStyles["marker_transp"]
+        point_transp_ndx = ltPointTranspPrcntVals.index(point_transp) if point_transp in ltPointTranspPrcntVals else 0
+        self.cmbPointTransp.setCurrentIndex(point_transp_ndx)
+        lytPoles.addWidget(self.cmbPointTransp, 1, 3, 1, 1)
+
+        # set/add to layout
+
+        grpPoles.setLayout(lytPoles)
+        layout.addWidget(grpPoles)
+
+        # ok/cancel stuff
+        btnOk = QPushButton("&OK")
+        btnCancel = QPushButton("Cancel")
+
+        lytButtons = QHBoxLayout()
+        lytButtons.addStretch()
+        lytButtons.addWidget(btnOk)
+        lytButtons.addWidget(btnCancel)
+
+        layout.addLayout(lytButtons)
+
+        self.connect(btnOk, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+        self.connect(btnCancel, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("Plot style")
+
+
+class AnglesSrcPtLyrDlg(QDialog):
 
     def __init__(self, parent=None):
 
-        super(AnglesSrcPtLyrDia, self).__init__(parent)
+        super(AnglesSrcPtLyrDlg, self).__init__(parent)
 
         self.tFieldUndefined = tFieldUndefined
 

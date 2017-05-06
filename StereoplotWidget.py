@@ -8,7 +8,7 @@
 -------------------
 
     Begin                : 2015.04.18
-    Date                 : 2017.04.30
+    Date                 : 2017.05.06
     Copyright            : (C) 2015-2017 by Mauro Alberti
     Email                : alberti dot m65 at gmail dot com
 
@@ -24,13 +24,15 @@
  ***************************************************************************/
 """
 
-from PyQt4.QtCore import QSettings
-from PyQt4.QtGui import QColor
-from apsg import *
+# from PyQt4.QtCore import QSettings
+# from PyQt4.QtGui import QColor
+
+from .apsg import *
 
 from .auxiliary_windows import *
 from .gsf.geometry import GPlane, GAxis
 from .gis_utils.qgs_tools import pt_geoms_attrs
+from .mpl_utils.save_figure import FigureExportDialog
 
 
 class StereoplotWidget(QWidget):
@@ -44,7 +46,12 @@ class StereoplotWidget(QWidget):
         self.mapCanvas = canvas
         self.pluginName = plugin_name
 
+        # settings stored for geocouche plugin
+
         settings = QSettings("alberese", "geocouche")
+
+        # stored setting values for plot style
+
         self.dPlotStyles = dict()
         self.dPlotStyles["line_color"] = settings.value("StereoplotWidget/line_color", "#FF0000")
         self.dPlotStyles["line_style"] = settings.value("StereoplotWidget/line_style", "solid")
@@ -54,9 +61,20 @@ class StereoplotWidget(QWidget):
         self.dPlotStyles["marker_style"] = settings.value("StereoplotWidget/marker_style", "circle")
         self.dPlotStyles["marker_size"] = settings.value("StereoplotWidget/marker_size", "6 pt(s)")
         self.dPlotStyles["marker_transp"] = settings.value("StereoplotWidget/point_transp", "0%")
-        
+
+        # stored setting values for figure export
+
+        self.dExportParams = dict()
+        self.dExportParams["expfig_width_inch"] = settings.value("StereoplotWidget/expfig_width_inch", "10")
+        self.dExportParams["expfig_res_dpi"] = settings.value("StereoplotWidget/expfig_res_dpi", "200")
+        self.dExportParams["expfig_font_size_pts"] = settings.value("StereoplotWidget/expfig_font_size_pts", "12")
+
+        # reset all data definitions
+
         self.reset_layer_src_data()
         self.reset_text_src_data()
+
+        # create gui window
 
         self.setup_gui()
 
@@ -87,9 +105,17 @@ class StereoplotWidget(QWidget):
         self.pshDefineStyle.clicked.connect(self.define_style)
         self.layout.addWidget(self.pshDefineStyle)
 
-        self.pshDefineStereoplot = QPushButton(self.tr("Plot stereonet"))
+        self.pshDefineStereoplot = QPushButton(self.tr("Plot data"))
         self.pshDefineStereoplot.clicked.connect(self.define_stereoplot)
         self.layout.addWidget(self.pshDefineStereoplot)
+
+        self.pshClearStereoplot = QPushButton(self.tr("Clear stereonet"))
+        self.pshClearStereoplot.clicked.connect(self.clear_stereoplot)
+        self.layout.addWidget(self.pshClearStereoplot)
+
+        self.pshSaveFigure = QPushButton(self.tr("Save figure"))
+        self.pshSaveFigure.clicked.connect(self.save_figure)
+        self.layout.addWidget(self.pshSaveFigure)
 
         self.setLayout(self.layout)
         self.setWindowTitle("Stereonet")
@@ -210,7 +236,7 @@ class StereoplotWidget(QWidget):
                 return False, "Error in input values"
 
         llyrLoadedPointLayers = loaded_point_layers()
-        dialog = StereoplotInputDialog(llyrLoadedPointLayers)
+        dialog = StereoplotInputDlg(llyrLoadedPointLayers)
         if dialog.exec_():
             if dialog.tabWdgt.currentIndex() == 0:
                 try:
@@ -294,7 +320,7 @@ class StereoplotWidget(QWidget):
 
     def define_style(self):
 
-        dialog = PlotStyleDialog(self.dPlotStyles)
+        dialog = PlotStyleDlg(self.dPlotStyles)
 
         if dialog.exec_():
 
@@ -489,14 +515,16 @@ class StereoplotWidget(QWidget):
                                                      color=line_color,
                                                      alpha=line_alpha)
 
+            """
             if plot_setts["tStereoplotStatus"] == "new stereonet":
                 self.stereonet = StereoNet()
             else:
                 if self.stereonet.closed:
                     self.warn("Previous stereonet is closed. Plot in a new one")
                     return
+            """
             plot_data_in_stereonet(struc_vals)
-            self.stereonet.show()
+            #self.stereonet.show()
 
         if not self.dLayerSrcParams["LayerSrcData"] and not self.dTextSrcParams["TextSrcData"]:
             self.warn("No data to plot")
@@ -510,7 +538,7 @@ class StereoplotWidget(QWidget):
         else:
             pass
 
-        dialog = PlotStereonetDialog()
+        dialog = PlotStereonetDlg()
         if dialog.exec_():
             dPlotSettings = dict(tStereoplotStatus=dialog.cmbStereonetFigure.currentText(),
                                  bPlotPlanes=dialog.chkPlanes.isChecked(),
@@ -520,6 +548,103 @@ class StereoplotWidget(QWidget):
                                  bPlotAxes=dialog.chkAxes.isChecked(),
                                  tPlotAxesFormat=dialog.cmbAxesType.currentText())
             plot_dataset(lStructuralValues, dPlotSettings)
+
+    def clear_stereoplot(self):
+
+        self.stereonet.cla()
+
+    def save_figure(self):
+
+        dialog = FigureExportDialog(self.pluginName, self.dExportParams)
+
+        if dialog.exec_():
+
+            try:
+                self.dExportParams["expfig_width_inch"] = dialog.qleFigWidthInch.text()
+                fig_width_inches = float(self.dExportParams["expfig_width_inch"])
+            except:
+                self.warn("Error in figure width value")
+                return
+
+            try:
+                self.dExportParams["expfig_res_dpi"] = dialog.qleFigResolutionDpi.text()
+                fig_resolution_dpi = int(self.dExportParams["expfig_res_dpi"])
+            except:
+                self.warn("Error in figure resolution value")
+                return
+
+            try:
+                self.dExportParams["expfig_font_size_pts"] = dialog.qleFigFontSizePts.text()
+                fig_font_size_pts = float(self.dExportParams["expfig_font_size_pts"])
+            except:
+                self.warn("Error in font size value")
+
+            try:
+                fig_outpath = unicode(dialog.qleFigureOutPath.text())
+            except:
+                self.warn("Error in figure output path")
+                return
+
+            try:
+                top_space_value = float(dialog.qsbTopSpaceValue.value())
+            except:
+                self.warn("Error in figure top space value")
+                return
+
+            try:
+                left_space_value = float(dialog.qsbLeftSpaceValue.value())
+            except:
+                self.warn("Error in figure left space value")
+                return
+
+            try:
+                right_space_value = float(dialog.qsbRightSpaceValue.value())
+            except:
+                self.warn("Error in figure right space value")
+                return
+
+            try:
+                bottom_space_value = float(dialog.qsbBottomSpaceValue.value())
+            except:
+                self.warn("Error in figure bottom space value")
+                return
+
+            try:
+                blank_width_space = float(dialog.qsbBlankWidthSpaceValue.value())
+            except:
+                self.warn("Error in figure blank widht space value")
+                return
+
+            try:
+                blank_height_space = float(dialog.qsbBlankHeightSpaceValue.value())
+            except:
+                self.warn("Error in figure blank height space value")
+                return
+
+        else:
+
+            self.warn("No export figure defined")
+            return
+
+        figure = self.stereonet.fig
+
+        fig_current_width, fig_current_height = figure.get_size_inches()
+        fig_scale_factor = fig_width_inches / fig_current_width
+        figure.set_size_inches(fig_width_inches, fig_scale_factor * fig_current_height)
+
+        for axis in figure.axes:
+            for label in (axis.get_xticklabels() + axis.get_yticklabels()):
+                label.set_fontsize(fig_font_size_pts)
+
+        figure.subplots_adjust(wspace=blank_width_space, hspace=blank_height_space, left=left_space_value,
+                               right=right_space_value, top=top_space_value, bottom=bottom_space_value)
+
+        try:
+            figure.savefig(str(fig_outpath), dpi=fig_resolution_dpi)
+        except:
+            self.warn("Error with image saving")
+        else:
+            self.info("Image saved")
 
     def info(self, msg):
 

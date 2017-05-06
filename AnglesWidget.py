@@ -28,7 +28,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from osgeo import ogr
 
-from .auxiliary_windows import AnglesSrcPtLyrDia, tFieldUndefined
+from .auxiliary_windows import AnglesSrcPtLyrDlg, tFieldUndefined
 from .gsf.geometry import GPlane
 from .gis_utils.gdal_utils import shapefile_create, ogr_write_point_result
 from .gis_utils.qgs_tools import pt_geoms_attrs, loaded_point_layers
@@ -190,7 +190,7 @@ class AnglesWidget(QWidget):
             self.warn("No available point layers")
             return
 
-        dialog = AnglesSrcPtLyrDia()
+        dialog = AnglesSrcPtLyrDlg()
         if dialog.exec_():
             try:
                 point_layer, structural_input_params = get_anglecalc_input_params(dialog)
