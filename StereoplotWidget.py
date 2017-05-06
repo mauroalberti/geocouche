@@ -74,7 +74,10 @@ class StereoplotWidget(QWidget):
 
     def setup_gui(self):
 
-        self.layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
+
+        self.stereonet = StereoNet()
+        self.layout.addWidget(self.stereonet.fig.canvas)
 
         self.pshDefineInput = QPushButton(self.tr("Input data"))
         self.pshDefineInput.clicked.connect(self.define_input)
@@ -103,11 +106,11 @@ class StereoplotWidget(QWidget):
 
         def layer_input_type_valid(dInputLayerParams):
 
-            if dInputLayerParams["plane_azimuth_name_field"] is not None and \
-              dInputLayerParams["plane_dip_name_field"] is not None:
+            if dInputLayerParams["pln_azimuth_name_field"] is not None and \
+              dInputLayerParams["pln_dip_name_field"] is not None:
                 return True
-            elif dInputLayerParams["axis_azimuth_name_field"] is not None and \
-              dInputLayerParams["axis_dip_name_field"] is not None:
+            elif dInputLayerParams["ln_azimuth_name_field"] is not None and \
+              dInputLayerParams["ln_dip_name_field"] is not None:
                 return True
             else:
                 return False
@@ -116,15 +119,15 @@ class StereoplotWidget(QWidget):
 
             # define type for planar data
 
-            if dInputParams["plane_azimuth_name_field"] is not None and \
-                            dInputParams["plane_dip_name_field"] is not None:
+            if dInputParams["pln_azimuth_name_field"] is not None and \
+                            dInputParams["pln_dip_name_field"] is not None:
                 plane_data = True
-                if dInputParams["plane_azimuth_type"] == "dip direction":
+                if dInputParams["pln_azimuth_type"] == "dip direction":
                     pln_az_type = "dip_dir"
                 else:
                     pln_az_type = "strike_rhr"
                 pln_dip_type = "dip"
-                if dInputParams["plane_rake_name_field"] is not None:
+                if dInputParams["pln_rake_name_field"] is not None:
                     pln_rake_value = True
                     pln_rake_type = "rake"
                 else:
@@ -139,16 +142,22 @@ class StereoplotWidget(QWidget):
 
             # define type for linear data
 
-            if dInputParams["axis_azimuth_name_field"] is not None and \
-                            dInputParams["axis_dip_name_field"] is not None:
+            if dInputParams["ln_azimuth_name_field"] is not None and \
+                            dInputParams["ln_dip_name_field"] is not None:
                 line_data = True
                 ln_az_type = "trend"
                 ln_dip_type = "plunge"
-                ln_ms_type = "movement_sense"
+                if dInputParams["ln_movsen_name_field"] is not None:
+                    ln_ms_value = True
+                    ln_ms_type = "movement_sense"
+                else:
+                    ln_ms_value = False
+                    ln_ms_type = None
             else:
                 line_data = False
                 ln_az_type = None
                 ln_dip_type = None
+                ln_ms_value = False
                 ln_ms_type = None
 
             return dict(plane_data=plane_data,
@@ -159,7 +168,8 @@ class StereoplotWidget(QWidget):
                         line_data=line_data,
                         ln_az_type=ln_az_type,
                         ln_dip_type=ln_dip_type,
-                        ln_ms_type=ln_ms_type)
+                        ln_ms_type=ln_ms_type,
+                        ln_ms_value=ln_ms_value)
 
         def orientations_from_text(data_type, azimuth_type, text, sep=','):
 
@@ -210,29 +220,29 @@ class StereoplotWidget(QWidget):
                     return
                 dInputLayerParams = dict()
                 try:
-                    dInputLayerParams["plane_azimuth_type"] = dialog.cmbInputLyrPlaneOrAzimType.currentText()
+                    dInputLayerParams["pln_azimuth_type"] = dialog.cmbInputLyrPlaneOrAzimType.currentText()
 
-                    dInputLayerParams["plane_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
+                    dInputLayerParams["pln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
                                                                                         tFieldUndefined)
 
                     dInputLayerParams["pln_dip_type"] = dialog.cmbInputPlaneOrientDipType.currentText()
-                    dInputLayerParams["plane_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
+                    dInputLayerParams["pln_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
                                                                                     tFieldUndefined)
 
                     dInputLayerParams["pln_rake_type"] = dialog.cmbInputPlaneRakeType.currentText()
-                    dInputLayerParams["plane_rake_name_field"] = parse_field_choice(dialog.cmbInputPlaneRakeSrcFld.currentText(),
+                    dInputLayerParams["pln_rake_name_field"] = parse_field_choice(dialog.cmbInputPlaneRakeSrcFld.currentText(),
                                                                                     tFieldUndefined)
 
-                    dInputLayerParams["axis_azimuth_type"] = dialog.cmbInputAxisAzimType.currentText()
-                    dInputLayerParams["axis_azimuth_name_field"] = parse_field_choice(dialog.cmbInputAxisAzimSrcFld.currentText(),
+                    dInputLayerParams["ln_azimuth_type"] = dialog.cmbInputAxisAzimType.currentText()
+                    dInputLayerParams["ln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputAxisAzimSrcFld.currentText(),
                                                                                       tFieldUndefined)
 
                     dInputLayerParams["ln_dip_type"] = dialog.cmbInputAxisDipType.currentText()
-                    dInputLayerParams["axis_dip_name_field"] = parse_field_choice(dialog.cmbInputAxisDipSrcFld.currentText(),
+                    dInputLayerParams["ln_dip_name_field"] = parse_field_choice(dialog.cmbInputAxisDipSrcFld.currentText(),
                                                                                   tFieldUndefined)
 
-                    dInputLayerParams["plane_movsen_type"] = dialog.cmbInputAxisMovSenseType.currentText()
-                    dInputLayerParams["plane_movsen_name_field"] = parse_field_choice(dialog.cmbInputAxisMovSenseSrcFld.currentText(),
+                    dInputLayerParams["ln_movsen_type"] = dialog.cmbInputAxisMovSenseType.currentText()
+                    dInputLayerParams["ln_movsen_name_field"] = parse_field_choice(dialog.cmbInputAxisMovSenseSrcFld.currentText(),
                                                                                       tFieldUndefined)
                 except:
                     self.warn("Incorrect input field definitions")
@@ -244,10 +254,12 @@ class StereoplotWidget(QWidget):
 
                 # get used field names in the point attribute table
 
-                ltAttitudeFldNms = [dInputLayerParams["plane_azimuth_name_field"],
-                                    dInputLayerParams["plane_dip_name_field"],
-                                    dInputLayerParams["axis_azimuth_name_field"],
-                                    dInputLayerParams["axis_dip_name_field"]]
+                ltAttitudeFldNms = [dInputLayerParams["pln_azimuth_name_field"],
+                                    dInputLayerParams["pln_dip_name_field"],
+                                    dInputLayerParams["pln_rake_name_field"],
+                                    dInputLayerParams["ln_azimuth_name_field"],
+                                    dInputLayerParams["ln_dip_name_field"],
+                                    dInputLayerParams["ln_movsen_name_field"]]
 
                 # set input data presence and type
 
@@ -335,6 +347,7 @@ class StereoplotWidget(QWidget):
             # extract and parse raw data
 
             lSrcStructuralVals = []
+            print "data_types_to_extract: {}".format(data_types_to_extract)
             for rec in structural_data:
                 dRecord = dict()
                 for ndx, (key, func) in enumerate(data_types_to_extract):
@@ -415,6 +428,7 @@ class StereoplotWidget(QWidget):
                         if not "ln_tr" in row or not "ln_pl" in row:
                             return None
                         else:
+                            print row["ln_tr"], row["ln_pl"]
                             continue
 
                     return map(lambda row: (row["ln_tr"], row["ln_pl"]), struct_vals)
@@ -438,19 +452,19 @@ class StereoplotWidget(QWidget):
                         for plane in plane_data:
                             if plot_setts["tPlotPlanesFormat"] == "great circles":
                                 p = Fol(*plane)
-                                self.currStereonet.plane(p,
-                                                         linestyle=line_style,
-                                                         linewidth=line_width,
-                                                         color=line_color,
-                                                         alpha=line_alpha)
+                                self.stereonet.plane(p,
+                                                     linestyle=line_style,
+                                                     linewidth=line_width,
+                                                     color=line_color,
+                                                     alpha=line_alpha)
                             else:
-                                line_rec = GPlane(*plane).normal.as_downgeolaxis().vals
+                                line_rec = GPlane(*plane).normal.downward.tp
                                 l = Lin(*line_rec)
-                                self.currStereonet.line(l,
-                                                        marker=marker_style,
-                                                        markersize=marker_size,
-                                                        color=marker_color,
-                                                        alpha=marker_transp)
+                                self.stereonet.line(l,
+                                                    marker=marker_style,
+                                                    markersize=marker_size,
+                                                    color=marker_color,
+                                                    alpha=marker_transp)
                             
                 if plot_setts["bPlotAxes"]:
                     assert plot_setts["tPlotAxesFormat"] in ["poles", "perpendicular planes"]
@@ -461,28 +475,28 @@ class StereoplotWidget(QWidget):
                         for line_rec in line_data:
                             if plot_setts["tPlotAxesFormat"] == "poles":
                                 l = Lin(*line_rec)
-                                self.currStereonet.line(l,
-                                                        marker=marker_style,
-                                                        markersize=marker_size,
-                                                        color=marker_color,
-                                                        alpha=marker_transp)
+                                self.stereonet.line(l,
+                                                    marker=marker_style,
+                                                    markersize=marker_size,
+                                                    color=marker_color,
+                                                    alpha=marker_transp)
                             else:
-                                plane = GAxis(*line_rec).normal_gplane.vals
+                                plane = GAxis(*line_rec).normal_gplane.dda
                                 p = Fol(*plane)
-                                self.currStereonet.plane(p,
-                                                         linestyle=line_style,
-                                                         linewidth=line_width,
-                                                         color=line_color,
-                                                         alpha=line_alpha)
+                                self.stereonet.plane(p,
+                                                     linestyle=line_style,
+                                                     linewidth=line_width,
+                                                     color=line_color,
+                                                     alpha=line_alpha)
 
             if plot_setts["tStereoplotStatus"] == "new stereonet":
-                self.currStereonet = StereoNet()
+                self.stereonet = StereoNet()
             else:
-                if self.currStereonet.closed:
+                if self.stereonet.closed:
                     self.warn("Previous stereonet is closed. Plot in a new one")
                     return
             plot_data_in_stereonet(struc_vals)
-            self.currStereonet.show()
+            self.stereonet.show()
 
         if not self.dLayerSrcParams["LayerSrcData"] and not self.dTextSrcParams["TextSrcData"]:
             self.warn("No data to plot")

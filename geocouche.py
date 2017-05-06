@@ -144,26 +144,12 @@ class Geocouche(object):
 
         dwgtStereoplotDockWidget = QDockWidget(self.tPluginName, self.interface.mainWindow())
         dwgtStereoplotDockWidget.setAttribute(Qt.WA_DeleteOnClose)
-        dwgtStereoplotDockWidget.setAllowedAreas(Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
+        dwgtStereoplotDockWidget.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 
         self.wdgtStereoplot = StereoplotWidget(self.canvas, self.tPluginName)
         dwgtStereoplotDockWidget.setWidget(self.wdgtStereoplot)
         dwgtStereoplotDockWidget.destroyed.connect(self.stereoplot_off)
-        self.interface.addDockWidget(Qt.BottomDockWidgetArea, dwgtStereoplotDockWidget)
-
-        #self.wdgtStereoplot.window_closed.connect(self.stereoplot_off)
-        """
-        settings = QSettings("alberese", "geocouche")
-        if settings.contains("StereoplotWidget/size") and settings.contains("StereoplotWidget/position"):
-            size = settings.value("StereoplotWidget/size", None)
-            pos = settings.value("StereoplotWidget/position", None)
-            self.wdgtStereoplot.resize(size)
-            self.wdgtStereoplot.move(pos)
-            self.wdgtStereoplot.show()
-        else:
-            self.wdgtStereoplot.show()
-        """
-
+        self.interface.addDockWidget(Qt.RightDockWidgetArea, dwgtStereoplotDockWidget)
 
         self.bStereoplotWidgetOpen = True
 
