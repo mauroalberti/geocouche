@@ -6,11 +6,11 @@ from PyQt4.QtGui import *
 from ..qt_utils.utils_qt import new_file_path, old_file_path
 
 
-class FigureExportDialog(QDialog):
+class FigureExportDetailedDlg(QDialog):
 
     def __init__(self, plugin_name, export_params, parent=None):
 
-        super(FigureExportDialog, self).__init__(parent)
+        super(FigureExportDetailedDlg, self).__init__(parent)
 
         self.sPluginName = plugin_name
         self.dExportParams = export_params
@@ -223,6 +223,89 @@ blank height space = %f""" % (float(self.qleFigWidthInch.text()),
         self.qsbBottomSpaceValue.setValue(bottom_space_value)
         self.qsbBlankWidthSpaceValue.setValue(blank_width_space)
         self.qsbBlankHeightSpaceValue.setValue(blank_height_space)
+
+    def define_figure_outpath(self):
+
+        outfile_path = new_file_path(self, "Create", "", "Images (*.svg *.pdf *.tif)")
+
+        self.qleFigureOutPath.setText(outfile_path)
+
+    def info(self, msg):
+
+        QMessageBox.information(self, self.sPluginName, msg)
+
+    def warn(self, msg):
+
+        QMessageBox.warning(self, self.sPluginName, msg)
+
+
+class FigureExportDlg(QDialog):
+
+    def __init__(self, plugin_name, export_params, parent=None):
+
+        super(FigureExportDlg, self).__init__(parent)
+
+        self.sPluginName = plugin_name
+        self.dExportParams = export_params
+
+        qlyMainLayout = QVBoxLayout()
+
+        # main parameters groupbox
+
+        qgbMainParams = QGroupBox("Main graphic parameters")
+
+        qlyMainParams = QGridLayout()
+
+        qlyMainParams.addWidget(QLabel(self.tr("Resolution (dpi)")), 0, 2, 1, 1)
+        self.qleFigResolutionDpi = QLineEdit(self.dExportParams["expfig_res_dpi"])
+        qlyMainParams.addWidget(self.qleFigResolutionDpi, 0, 3, 1, 1)
+
+        qgbMainParams.setLayout(qlyMainParams)
+
+        qlyMainLayout.addWidget(qgbMainParams)
+
+        # output file parameters
+
+        qgbOutputFile = QGroupBox(self.tr("Output file - suggested formats: tif, pdf, svg"))
+
+        qlyOutputFile = QGridLayout()
+
+        self.qleFigureOutPath = QLineEdit()
+        qlyOutputFile.addWidget(self.qleFigureOutPath, 3, 0, 1, 1)
+
+        self.qpbFigureOutPath = QPushButton(self.tr("Choose"))
+        self.qpbFigureOutPath.clicked.connect(self.define_figure_outpath)
+        qlyOutputFile.addWidget(self.qpbFigureOutPath, 3, 1, 1, 1)
+
+        qgbOutputFile.setLayout(qlyOutputFile)
+
+        qlyMainLayout.addWidget(qgbOutputFile)
+
+        # execution buttons
+
+        qwdgDecide = QWidget()
+
+        qhblButtons = QHBoxLayout()
+        qhblButtons.addStretch()
+
+        qpbOk = QPushButton("&OK")
+        qpbCancel = QPushButton("Cancel")
+
+        qhblButtons.addWidget(qpbOk)
+        qhblButtons.addWidget(qpbCancel)
+
+        qwdgDecide.setLayout(qhblButtons)
+
+        qlyMainLayout.addWidget(qwdgDecide)
+
+        self.setLayout(qlyMainLayout)
+
+        self.connect(qpbOk, SIGNAL("clicked()"),
+                     self, SLOT("accept()"))
+        self.connect(qpbCancel, SIGNAL("clicked()"),
+                     self, SLOT("reject()"))
+
+        self.setWindowTitle("Export figure")
 
     def define_figure_outpath(self):
 

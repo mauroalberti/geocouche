@@ -32,7 +32,7 @@ from .apsg import *
 from .auxiliary_windows import *
 from .gsf.geometry import GPlane, GAxis
 from .gis_utils.qgs_tools import pt_geoms_attrs
-from .mpl_utils.save_figure import FigureExportDialog
+from .mpl_utils.save_figure import FigureExportDlg
 
 
 class StereoplotWidget(QWidget):
@@ -549,17 +549,9 @@ class StereoplotWidget(QWidget):
 
     def save_figure(self):
 
-        dialog = FigureExportDialog(self.pluginName, self.dExportParams)
+        dialog = FigureExportDlg(self.pluginName, self.dExportParams)
 
         if dialog.exec_():
-
-            try:
-                self.dExportParams["expfig_width_inch"] = dialog.qleFigWidthInch.text()
-                fig_width_inches = float(self.dExportParams["expfig_width_inch"])
-            except:
-                self.warn("Error in figure width value")
-                return
-
             try:
                 self.dExportParams["expfig_res_dpi"] = dialog.qleFigResolutionDpi.text()
                 fig_resolution_dpi = int(self.dExportParams["expfig_res_dpi"])
@@ -568,77 +560,21 @@ class StereoplotWidget(QWidget):
                 return
 
             try:
-                self.dExportParams["expfig_font_size_pts"] = dialog.qleFigFontSizePts.text()
-                fig_font_size_pts = float(self.dExportParams["expfig_font_size_pts"])
-            except:
-                self.warn("Error in font size value")
-
-            try:
                 fig_outpath = unicode(dialog.qleFigureOutPath.text())
             except:
                 self.warn("Error in figure output path")
                 return
-
-            try:
-                top_space_value = float(dialog.qsbTopSpaceValue.value())
-            except:
-                self.warn("Error in figure top space value")
-                return
-
-            try:
-                left_space_value = float(dialog.qsbLeftSpaceValue.value())
-            except:
-                self.warn("Error in figure left space value")
-                return
-
-            try:
-                right_space_value = float(dialog.qsbRightSpaceValue.value())
-            except:
-                self.warn("Error in figure right space value")
-                return
-
-            try:
-                bottom_space_value = float(dialog.qsbBottomSpaceValue.value())
-            except:
-                self.warn("Error in figure bottom space value")
-                return
-
-            try:
-                blank_width_space = float(dialog.qsbBlankWidthSpaceValue.value())
-            except:
-                self.warn("Error in figure blank widht space value")
-                return
-
-            try:
-                blank_height_space = float(dialog.qsbBlankHeightSpaceValue.value())
-            except:
-                self.warn("Error in figure blank height space value")
-                return
-
         else:
-
             self.warn("No export figure defined")
             return
 
-        figure = self.stereonet.fig
-
-        fig_current_width, fig_current_height = figure.get_size_inches()
-        fig_scale_factor = fig_width_inches / fig_current_width
-        figure.set_size_inches(fig_width_inches, fig_scale_factor * fig_current_height)
-
-        for axis in figure.axes:
-            for label in (axis.get_xticklabels() + axis.get_yticklabels()):
-                label.set_fontsize(fig_font_size_pts)
-
-        figure.subplots_adjust(wspace=blank_width_space, hspace=blank_height_space, left=left_space_value,
-                               right=right_space_value, top=top_space_value, bottom=bottom_space_value)
-
         try:
-            figure.savefig(str(fig_outpath), dpi=fig_resolution_dpi)
-        except:
-            self.warn("Error with image saving")
-        else:
-            self.info("Image saved")
+            self.stereonet.fig.savefig(str(fig_outpath), dpi=fig_resolution_dpi)
+            success, msg, func = True, "Image saved", self.info
+        except Exception as e:
+            success, msg, func = False, "Exception with image saving: {}".format(e.message), self.warn
+        finally:
+            func(msg)
 
     def info(self, msg):
 
