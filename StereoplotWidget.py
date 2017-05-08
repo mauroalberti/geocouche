@@ -320,9 +320,7 @@ class StereoplotWidget(QWidget):
 
     def define_style(self):
 
-        dialog = PlotStyleDlg(self.dPlotStyles)
-
-        if dialog.exec_():
+        def extract_user_styles():
 
             self.dPlotStyles["line_color"] = dialog.btnLineColor.color().name()
             self.dPlotStyles["line_style"] = dialog.cmbLineStyle.currentText()
@@ -333,6 +331,13 @@ class StereoplotWidget(QWidget):
             self.dPlotStyles["marker_style"] = dialog.cmbPointStyle.currentText()
             self.dPlotStyles["marker_size"] = dialog.cmbPointSize.currentText()
             self.dPlotStyles["marker_transp"] = dialog.cmbPointTransp.currentText()
+
+        dialog = PlotStyleDlg(self.dPlotStyles)
+
+        if dialog.exec_():
+
+            extract_user_styles()
+            self.update_style_settings()
 
     def define_stereoplot(self):
 
@@ -373,7 +378,6 @@ class StereoplotWidget(QWidget):
             # extract and parse raw data
 
             lSrcStructuralVals = []
-            print "data_types_to_extract: {}".format(data_types_to_extract)
             for rec in structural_data:
                 dRecord = dict()
                 for ndx, (key, func) in enumerate(data_types_to_extract):
@@ -454,7 +458,6 @@ class StereoplotWidget(QWidget):
                         if not "ln_tr" in row or not "ln_pl" in row:
                             return None
                         else:
-                            print row["ln_tr"], row["ln_pl"]
                             continue
 
                     return map(lambda row: (row["ln_tr"], row["ln_pl"]), struct_vals)
@@ -515,16 +518,7 @@ class StereoplotWidget(QWidget):
                                                      color=line_color,
                                                      alpha=line_alpha)
 
-            """
-            if plot_setts["tStereoplotStatus"] == "new stereonet":
-                self.stereonet = StereoNet()
-            else:
-                if self.stereonet.closed:
-                    self.warn("Previous stereonet is closed. Plot in a new one")
-                    return
-            """
             plot_data_in_stereonet(struc_vals)
-            #self.stereonet.show()
 
         if not self.dLayerSrcParams["LayerSrcData"] and not self.dTextSrcParams["TextSrcData"]:
             self.warn("No data to plot")
@@ -654,13 +648,9 @@ class StereoplotWidget(QWidget):
 
         QMessageBox.warning(self, self.pluginName, msg)
 
-    def closeEvent(self, event):
+    def update_style_settings(self):
 
         settings = QSettings("alberese", "geocouche")
-
-        settings.setValue("StereoplotWidget/size", self.size())
-        settings.setValue("StereoplotWidget/position", self.pos())
-
         settings.setValue("StereoplotWidget/line_color", self.dPlotStyles["line_color"])
         settings.setValue("StereoplotWidget/line_style", self.dPlotStyles["line_style"])
         settings.setValue("StereoplotWidget/line_width", self.dPlotStyles["line_width"])
@@ -670,6 +660,14 @@ class StereoplotWidget(QWidget):
         settings.setValue("StereoplotWidget/marker_style", self.dPlotStyles["marker_style"])
         settings.setValue("StereoplotWidget/marker_size", self.dPlotStyles["marker_size"])
         settings.setValue("StereoplotWidget/point_transp", self.dPlotStyles["marker_transp"])
+
+    def closeEvent(self, event):
+
+        # todo: define if this function it's reached or not, and how to change in negative case
+
+        settings = QSettings("alberese", "geocouche")
+        settings.setValue("StereoplotWidget/size", self.size())
+        settings.setValue("StereoplotWidget/position", self.pos())
 
         self.window_closed.emit()
 

@@ -244,7 +244,7 @@ class PlotStyleDlg(QDialog):
 
         self.dPlotStyles = dPlotStyles
 
-        # settings = QSettings("alberese", "geocouche")
+        settings = QSettings("alberese", "geocouche")
 
         layout = QVBoxLayout()
 
