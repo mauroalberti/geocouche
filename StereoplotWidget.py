@@ -80,15 +80,16 @@ class StereoplotWidget(QWidget):
 
     def reset_layer_src_data(self):
 
-        self.dLayerSrcParams = dict(LayerSrcData=False,
-                                    GeoStructurData=[],
-                                    InputDataTypes=[])
+        self.dLyrSrcParams = dict(LayerSrcData=False,
+                                  GeoStructurData=[],
+                                  InputDataTypes=[])
 
     def reset_text_src_data(self):
 
-        self.dTextSrcParams = dict(TextSrcData=False,
-                                   PlaneOrientations=[],
-                                   AxisOrientations=[])
+        self.dTxtSrcParams = dict(TextSrcData=False,
+                                  PlaneOrientations=[],
+                                  AxisOrientations=[],
+                                  FaultRakeOrientations=[])
 
     def setup_gui(self):
 
@@ -215,29 +216,34 @@ class StereoplotWidget(QWidget):
                 elif data_type == "axes":
                     trend, plunge = map(float, raw_values)
                     axes.append([trend, plunge])
-                else:
+                elif data_type == "planes & axes":
                     az, dip, trend, plunge = map(float, raw_values)
                     planes.append([parse_plane_azim(az), dip])
                     axes.append([trend, plunge])
+                elif data_type == "fault planes with rake":
+                    az, dip, rake = map(float, raw_values)
+                    faults.append([parse_plane_azim(az), dip, rake])
 
             if text is None or text == '':
                 return False, "No value available"
 
-            lines = text.split("\n")
-            if len(lines) == 0:
+            rows = text.split("\n")
+            if len(rows) == 0:
                 return False, "No value available"
 
             planes = []
             axes = []
+            faults = []
             try:
-                map(extract_values, lines)
-                return True, (planes, axes)
+                map(extract_values, rows)
+                return True, (planes, axes, faults)
             except:
                 return False, "Error in input values"
 
         llyrLoadedPointLayers = loaded_point_layers()
         dialog = StereoplotInputDlg(llyrLoadedPointLayers)
         if dialog.exec_():
+            # layer as input
             if dialog.tabWdgt.currentIndex() == 0:
                 try:
                     lyrInputLayer = llyrLoadedPointLayers[dialog.cmbInputLayers.currentIndex() - 1]
@@ -289,12 +295,13 @@ class StereoplotWidget(QWidget):
 
                 # set input data presence and type
 
-                self.dLayerSrcParams = dict(LayerSrcData=True,
-                                            SrcLayer=lyrInputLayer,
-                                            AttidudeFldNames=ltAttitudeFldNms,
-                                            InputDataTypes=layer_input_type(dInputLayerParams))
+                self.dLyrSrcParams = dict(LayerSrcData=True,
+                                          SrcLayer=lyrInputLayer,
+                                          AttidudeFldNames=ltAttitudeFldNms,
+                                          InputDataTypes=layer_input_type(dInputLayerParams))
                 self.reset_text_src_data()  # discard text-derived data
 
+            # text as input
             elif dialog.tabWdgt.currentIndex() == 1:
                 try:
                     tDataType = dialog.cmbInputDataType.currentText()
@@ -309,8 +316,10 @@ class StereoplotWidget(QWidget):
                     self.warn(tResult)
                     return
                 else:
-                    self.dTextSrcParams["PlaneOrientations"], self.dTextSrcParams["AxisOrientations"] = tResult
-                    self.dTextSrcParams["TextSrcData"] = True
+                    self.dTxtSrcParams["TextSrcData"] = True
+                    self.dTxtSrcParams["PlaneOrientations"] = tResult[0]
+                    self.dTxtSrcParams["AxisOrientations"] = tResult[1]
+                    self.dTxtSrcParams["FaultRakeOrientations"] = tResult[2]
                     self.reset_layer_src_data()  # discard layer-derived data
             else:
                 self.warn("Error with input data choice")
@@ -458,7 +467,7 @@ class StereoplotWidget(QWidget):
                     assert plot_setts["tPlotPlanesFormat"] in ["great circles", "normal axes"]
                     plane_data = get_plane_data(structural_values)
                     if not plane_data:
-                        self.warn(("No plane data"))
+                        self.warn("No plane data")
                     else:
                         for plane in plane_data:
                             if plot_setts["tPlotPlanesFormat"] == "great circles":
@@ -488,10 +497,10 @@ class StereoplotWidget(QWidget):
                         else:
                             for flt_slick in flt_slik_data:
                                 dip_dir, dip_ang, rake, lin_tr, lin_pl = flt_slick
-                                if rake > 0:
-                                    sense = -1
-                                else:
+                                if rake > 0:  # reverse faults according to Aki & Richards, 1980 convention
                                     sense = 1
+                                else: # normal faults according to Aki & Richards, 1980 convention
+                                    sense = -1
                                 flt = Fault(dip_dir, dip_ang, lin_tr, lin_pl, sense)
                                 if plot_setts["tPlotPlaneswithRakeFormat"] == "faults with skickenlines":
                                     self.stereonet.fault(flt,
@@ -527,14 +536,14 @@ class StereoplotWidget(QWidget):
 
             plot_data_in_stereonet(struc_vals)
 
-        if not self.dLayerSrcParams["LayerSrcData"] and not self.dTextSrcParams["TextSrcData"]:
+        if not self.dLyrSrcParams["LayerSrcData"] and not self.dTxtSrcParams["TextSrcData"]:
             self.warn("No data to plot")
             return
 
-        if self.dLayerSrcParams["LayerSrcData"]:
-            lGeoStructurData = pt_geoms_attrs(self.dLayerSrcParams["SrcLayer"],
-                                              self.dLayerSrcParams["AttidudeFldNames"])
-            lStructuralValues = parse_layer_data(self.dLayerSrcParams["InputDataTypes"],
+        if self.dLyrSrcParams["LayerSrcData"]:
+            lGeoStructurData = pt_geoms_attrs(self.dLyrSrcParams["SrcLayer"],
+                                              self.dLyrSrcParams["AttidudeFldNames"])
+            lStructuralValues = parse_layer_data(self.dLyrSrcParams["InputDataTypes"],
                                                  lGeoStructurData)
         else:
             pass
