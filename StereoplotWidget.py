@@ -354,15 +354,6 @@ class StereoplotWidget(QWidget):
 
                 return (float(azimuth) + offset) % 360.0
 
-            def parse_rake(dip_dir, dip_angle, rake):
-
-                plane = GPlane(dip_dir, dip_angle)
-                return plane.rake_to_gv(float(rake))
-
-            def parse_movsense(mov_sense):
-
-                pass
-
             # create list of text holders for data to extract
 
             data_types_to_extract = [("x", float), ("y", float)]
@@ -383,38 +374,6 @@ class StereoplotWidget(QWidget):
                 for ndx, (key, func) in enumerate(data_types_to_extract):
                     dRecord[key] = func(rec[ndx])
                 lSrcStructuralVals.append(dRecord)
-
-            """
-            # source point coordinates
-
-            xy_vals = [(float(rec[x_ndx]), float(rec[y_ndx])) for rec in structural_data]
-
-
-            try:
-                if input_data_types["plane_data"]:
-                    azimuths = [float(rec[2]) for rec in structural_data]
-                    dipdir_vals = parse_azimuth_values(azimuths,
-                                                       input_data_types["pln_az_type"])
-                    dipangle_vals = [float(rec[3]) for rec in structural_data]
-                    plane_vals = zip(dipdir_vals, dipangle_vals)
-                    line_data_ndx_start = 4
-                else:
-                    plane_vals = None
-                    line_data_ndx_start = 2
-            except Exception as e:
-                raise Exception("Error in planar data parsing: {}".format(e.message))
-
-            try:
-                if input_data_types["line_data"]:
-                    line_vals = [(float(rec[line_data_ndx_start]), float(rec[line_data_ndx_start + 1])) for rec in
-                                 structural_data]
-                else:
-                    line_vals = None
-            except Exception as e:
-                raise Exception("Error in linear data parsing: {}".format(e.message))
-
-            return xy_vals, plane_vals, line_vals
-            """
 
             return lSrcStructuralVals
 
@@ -451,6 +410,29 @@ class StereoplotWidget(QWidget):
                             continue
 
                     return map(lambda row: (row["pln_dipdir"], row["pln_dipang"]), struct_vals)
+
+                def get_fault_slikenline_data(struct_vals):
+
+                    def parse_rake(dipdir, dipang, rk):
+
+                        gv = GPlane(dipdir, dipang).rake_to_gv(float(rk)).downward
+                        return gv.tp
+
+                    for row in struct_vals:
+                        if not "pln_dipdir" in row or not "pln_dipang" in row or not "pln_rk" in row:
+                            return None
+                        else:
+                            continue
+
+                    vals = []
+                    for row in struct_vals:
+                        dip_dir = row["pln_dipdir"]
+                        dip_ang = row["pln_dipang"]
+                        rake = row["pln_rk"]
+                        lin_tr, lin_pl = parse_rake(dip_dir, dip_ang, rake)
+                        vals.append((dip_dir, dip_ang, rake, lin_tr, lin_pl))
+
+                    return vals
 
                 def get_line_data(struct_vals):
 
@@ -494,7 +476,32 @@ class StereoplotWidget(QWidget):
                                                     markersize=marker_size,
                                                     color=marker_color,
                                                     alpha=marker_transp)
-                            
+
+                if plot_setts["bPlotPlaneswithRake"]:
+                    assert plot_setts["tPlotPlaneswithRakeFormat"] in ["faults with skickenlines", "P-T axes", "T-L diagrams"]
+                    flt_slik_data = get_fault_slikenline_data(structural_values)
+                    if not flt_slik_data:
+                        self.warn(("No fault-slickenline data"))
+                    else:
+                        if plot_setts["tPlotPlaneswithRakeFormat"] != "faults with skickenlines":
+                            self.warn("{} not yet implemented".format(plot_setts["tPlotPlaneswithRakeFormat"]))
+                        else:
+                            for flt_slick in flt_slik_data:
+                                dip_dir, dip_ang, rake, lin_tr, lin_pl = flt_slick
+                                if rake > 0:
+                                    sense = -1
+                                else:
+                                    sense = 1
+                                flt = Fault(dip_dir, dip_ang, lin_tr, lin_pl, sense)
+                                if plot_setts["tPlotPlaneswithRakeFormat"] == "faults with skickenlines":
+                                    self.stereonet.fault(flt,
+                                                         linestyle=line_style,
+                                                         linewidth=line_width,
+                                                         color=line_color,
+                                                         alpha=line_alpha)
+                                else:
+                                    raise Exception("Not yet implemented")
+
                 if plot_setts["bPlotAxes"]:
                     assert plot_setts["tPlotAxesFormat"] in ["poles", "perpendicular planes"]
                     line_data = get_line_data(structural_values)
