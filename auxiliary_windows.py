@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from collections import OrderedDict
 
@@ -10,10 +11,10 @@ from .gis_utils.qgs_tools import loaded_point_layers
 ltInputDataTypes = ("planes", "axes", "planes & axes", "fault planes with rake")
 ltInputPlaneAzimuthTypes = ["dip direction", "strike rhr"]
 ltInputPlaneDipTypes = ["dip angle"]
-ltInputPlaneRakeTypes = ["rake"]
+ltInputAxisRakeTypes = ["rake - Aki & Richards, 1980"]
 ltInputAxisAzimuthTypes = ["trend"]
 ltInputAxisDipTypes = ["plunge"]
-ltInputAxisMovSenseTypes = ["movem. sense"]
+ltInputAxisMovSenseTypes = ["mov. sense - N/T/L/R"]
 
 tLayerChooseMsg = "choose"
 tFieldUndefined = "---"
@@ -50,22 +51,22 @@ class StereoplotInputDlg(QDialog):
     def setup_layer_input_gui(self):
 
         wdgtLayerInput = QWidget()
-        lytLayerInput = QGridLayout()
+        lytLayerInput = QVBoxLayout()
 
         # input layer
 
-        grpLayer = QGroupBox("Point layer storing geological measures")
+        grpLayer = QGroupBox("Point layer")
         lytLayer = QGridLayout()
 
         self.cmbInputLayers = QComboBox()
         lytLayer.addWidget(self.cmbInputLayers, 0, 0, 1, 2)
 
         grpLayer.setLayout(lytLayer)
-        lytLayerInput.addWidget(grpLayer, 0, 0, 1, 2)
+        lytLayerInput.addWidget(grpLayer)
 
         # plane values
 
-        grpPlane = QGroupBox("Plane (with optional rake-defined line)")
+        grpPlane = QGroupBox("Plane attitudes")
         lytPlane = QGridLayout()
 
         self.cmbInputLyrPlaneOrAzimType = QComboBox()
@@ -82,20 +83,12 @@ class StereoplotInputDlg(QDialog):
         self.cmbInputPlaneDipSrcFld = QComboBox()
         lytPlane.addWidget(self.cmbInputPlaneDipSrcFld, 1, 1, 1, 1)
 
-        self.cmbInputPlaneRakeType = QComboBox()
-        self.cmbInputPlaneRakeType.addItems(ltInputPlaneRakeTypes)
-        lytPlane.addWidget(self.cmbInputPlaneRakeType, 2, 0, 1, 1)
-
-        self.cmbInputPlaneRakeSrcFld = QComboBox()
-        lytPlane.addWidget(self.cmbInputPlaneRakeSrcFld, 2, 1, 1, 1)
-
-
         grpPlane.setLayout(lytPlane)
-        lytLayerInput.addWidget(grpPlane, 1, 0, 2, 2)
+        lytLayerInput.addWidget(grpPlane)
 
         # line values
 
-        grpAxisAttitudes = QGroupBox("Line (with optional movement sense)")
+        grpAxisAttitudes = QGroupBox("Line orientations")
         lytAxisAttitudes = QGridLayout()
 
         self.cmbInputAxisAzimType = QComboBox()
@@ -119,13 +112,19 @@ class StereoplotInputDlg(QDialog):
         self.cmbInputAxisMovSenseSrcFld = QComboBox()
         lytAxisAttitudes.addWidget(self.cmbInputAxisMovSenseSrcFld, 2, 1, 1, 1)
 
+        self.cmbInputAxisRakeType = QComboBox()
+        self.cmbInputAxisRakeType.addItems(ltInputAxisRakeTypes)
+        lytAxisAttitudes.addWidget(self.cmbInputAxisRakeType, 3, 0, 1, 1)
+
+        self.cmbInputAxisRakeSrcFld = QComboBox()
+        lytAxisAttitudes.addWidget(self.cmbInputAxisRakeSrcFld, 3, 1, 1, 1)
 
         grpAxisAttitudes.setLayout(lytAxisAttitudes)
-        lytLayerInput.addWidget(grpAxisAttitudes, 3, 0, 2, 2)
+        lytLayerInput.addWidget(grpAxisAttitudes)
 
         self.lStructuralComboxes = [self.cmbInputPlaneAzimSrcFld,
                                     self.cmbInputPlaneDipSrcFld,
-                                    self.cmbInputPlaneRakeSrcFld,
+                                    self.cmbInputAxisRakeSrcFld,
                                     self.cmbInputAxisAzimSrcFld,
                                     self.cmbInputAxisDipSrcFld,
                                     self.cmbInputAxisMovSenseSrcFld]
@@ -142,7 +141,7 @@ class StereoplotInputDlg(QDialog):
         lytButtons.addWidget(btnOk)
         lytButtons.addWidget(btnCancel)
 
-        lytLayerInput.addLayout(lytButtons, 5, 0, 1, 2)
+        lytLayerInput.addLayout(lytButtons)
 
         wdgtLayerInput.setLayout(lytLayerInput)
 
@@ -386,13 +385,7 @@ class PlotStereonetDlg(QDialog):
 
         lytPlot = QGridLayout()
 
-        lytPlot.addWidget(QLabel("Plot in"), 0, 0, 1, 2)
-
-        # stereoplot, new or previous
-
-        self.cmbStereonetFigure = QComboBox()
-        self.cmbStereonetFigure.addItems(["new stereonet", "previous stereonet"])
-        lytPlot.addWidget(self.cmbStereonetFigure, 0, 2, 1, 1)
+        lytPlot.addWidget(QLabel("Plot"), 0, 0, 1, 2)
 
         # planes
 
@@ -404,25 +397,25 @@ class PlotStereonetDlg(QDialog):
         self.cmbPlanesType.insertItems(0, ["great circles", "normal axes"])
         lytPlot.addWidget(self.cmbPlanesType, 1, 2, 1, 1)
 
-        # planes with rake
-
-        self.chkPlaneswithRake = QCheckBox("planes with rake")
-        self.chkPlaneswithRake.setChecked(False)
-        lytPlot.addWidget(self.chkPlaneswithRake, 2, 0, 1, 1)
-        lytPlot.addWidget(QLabel("as"), 2, 1, 1, 1)
-        self.cmbPlaneswithRakeType = QComboBox()
-        self.cmbPlaneswithRakeType.insertItems(0, ["faults with skickenlines", "P-T axes", "T-L diagrams"])
-        lytPlot.addWidget(self.cmbPlaneswithRakeType, 2, 2, 1, 1)
-
         # lines
 
         self.chkAxes = QCheckBox("lines")
         self.chkAxes.setChecked(False)
-        lytPlot.addWidget(self.chkAxes, 3, 0, 1, 1)
-        lytPlot.addWidget(QLabel("as"), 3, 1, 1, 1)
+        lytPlot.addWidget(self.chkAxes, 2, 0, 1, 1)
+        lytPlot.addWidget(QLabel("as"), 2, 1, 1, 1)
         self.cmbAxesType = QComboBox()
         self.cmbAxesType.insertItems(0, ["poles", "perpendicular planes"])
-        lytPlot.addWidget(self.cmbAxesType, 3, 2, 1, 1)
+        lytPlot.addWidget(self.cmbAxesType, 2, 2, 1, 1)
+
+        # planes and lines
+
+        self.chkPlaneswithRake = QCheckBox("planes and lines")
+        self.chkPlaneswithRake.setChecked(False)
+        lytPlot.addWidget(self.chkPlaneswithRake, 3, 0, 1, 1)
+        lytPlot.addWidget(QLabel("as"), 3, 1, 1, 1)
+        self.cmbPlaneswithRakeType = QComboBox()
+        self.cmbPlaneswithRakeType.insertItems(0, ["faults with skickenlines", "P-T axes", "T-L diagrams"])
+        lytPlot.addWidget(self.cmbPlaneswithRakeType, 3, 2, 1, 1)
 
         grpPlot.setLayout(lytPlot)
         layout.addWidget(grpPlot)

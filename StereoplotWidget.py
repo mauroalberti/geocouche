@@ -127,7 +127,7 @@ class StereoplotWidget(QWidget):
         def parse_field_choice(val, choose_message):
 
             if val == choose_message:
-                return None
+                return ''
             else:
                 return val
 
@@ -142,35 +142,28 @@ class StereoplotWidget(QWidget):
             else:
                 return False
 
-        def layer_input_type(dInputParams):
+        def layer_inputs_types(dInputParams):
 
             # define type for planar data
 
-            if dInputParams["pln_azimuth_name_field"] is not None and \
-                            dInputParams["pln_dip_name_field"] is not None:
-                plane_data = True
-                if dInputParams["pln_azimuth_type"] == "dip direction":
-                    pln_az_type = "dip_dir"
-                else:
-                    pln_az_type = "strike_rhr"
+            bIsPlaneDefined = True if dInputParams["pln_azimuth_name_field"] and dInputParams["pln_dip_name_field"] else False
+
+            if bIsPlaneDefined:
+                pln_az_type = "dip_dir" if dInputParams["pln_azimuth_type"] == "dip direction" else "strike_rhr"
                 pln_dip_type = "dip"
-                if dInputParams["pln_rake_name_field"] is not None:
-                    pln_rake_value = True
-                    pln_rake_type = "rake"
-                else:
-                    pln_rake_value = False
-                    pln_rake_type = None
             else:
-                plane_data = False
                 pln_az_type = None
                 pln_dip_type = None
-                pln_rake_value = False
-                pln_rake_type = None
 
             # define type for linear data
 
-            if dInputParams["ln_azimuth_name_field"] is not None and \
-                            dInputParams["ln_dip_name_field"] is not None:
+            bIsLnTrndPlngDefined = True if dInputParams["ln_azimuth_name_field"] and dInputParams["ln_dip_name_field"] else False
+            bIsLnMovSnsDefined = True if dInputParams["ln_movsen_name_field"] else False
+            bIsLnRkDefined = True if bIsPlaneDefined and not bIsLnTrndPlngDefined and dInputParams["ln_rake_name_field"] else False
+
+            if (dInputParams["ln_azimuth_name_field"] is not None and \
+                    dInputParams["ln_dip_name_field"] is not None) or \
+                    dInputParams["ln_rake_name_field"] is not None:
                 line_data = True
                 ln_az_type = "trend"
                 ln_dip_type = "plunge"
@@ -180,18 +173,26 @@ class StereoplotWidget(QWidget):
                 else:
                     ln_ms_value = False
                     ln_ms_type = None
+                if dInputParams["ln_rake_name_field"] is not None:
+                    ln_rake_value = True
+                    ln_rake_type = "rake"
+                else:
+                    ln_rake_value = False
+                    ln_rake_type = None
             else:
                 line_data = False
                 ln_az_type = None
                 ln_dip_type = None
                 ln_ms_value = False
                 ln_ms_type = None
+                ln_rake_value = False
+                ln_rake_type = None
 
-            return dict(plane_data=plane_data,
+            return dict(plane_data=bIsPlaneDefined,
                         pln_az_type=pln_az_type,
                         pln_dip_type=pln_dip_type,
-                        pln_rake_type=pln_rake_type,
-                        pln_rake_value=pln_rake_value,
+                        pln_rake_type=ln_rake_type,
+                        ln_rake_value=ln_rake_value,
                         line_data=line_data,
                         ln_az_type=ln_az_type,
                         ln_dip_type=ln_dip_type,
@@ -202,27 +203,31 @@ class StereoplotWidget(QWidget):
 
             def extract_values(row):
 
-                def parse_plane_azim(az_raw):
+                def parse_plane_dirdir(az_raw):
                     if azimuth_type == "strike rhr":
-                        az = az_raw + 90.0
+                        dip_dir = az_raw + 90.0
                     else:
-                        az = az_raw
-                    return az % 360.0
+                        dip_dir = az_raw
+                    return dip_dir % 360.0
 
                 raw_values = row.split(sep)
                 if data_type == "planes":
-                    az, dip = map(float, raw_values)
-                    planes.append([parse_plane_azim(az), dip])
+                    azim, dip_ang = map(float, raw_values)
+                    planes.append([parse_plane_dirdir(azim), dip_ang])
                 elif data_type == "axes":
                     trend, plunge = map(float, raw_values)
                     axes.append([trend, plunge])
                 elif data_type == "planes & axes":
-                    az, dip, trend, plunge = map(float, raw_values)
-                    planes.append([parse_plane_azim(az), dip])
+                    azim, dip_ang, trend, plunge = map(float, raw_values)
+                    planes.append([parse_plane_dirdir(azim), dip_ang])
                     axes.append([trend, plunge])
                 elif data_type == "fault planes with rake":
-                    az, dip, rake = map(float, raw_values)
-                    faults.append([parse_plane_azim(az), dip, rake])
+                    azim, dip_ang, rake = map(float, raw_values)
+                    dip_dir = parse_plane_dirdir(azim)
+                    planes.append([dip_dir, dip_ang])
+                    slick_tr, slick_pl = GPlane(dip_dir, dip_ang).rake_to_gv(rake).downward.tp
+                    axes.append([slick_tr, slick_pl])
+                    faults.append([dip_dir, dip_ang, rake, slick_tr, slick_pl])
 
             if text is None or text == '':
                 return False, "No value available"
@@ -261,9 +266,9 @@ class StereoplotWidget(QWidget):
                     dInputLayerParams["pln_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
                                                                                     tFieldUndefined)
 
-                    dInputLayerParams["pln_rake_type"] = dialog.cmbInputPlaneRakeType.currentText()
-                    dInputLayerParams["pln_rake_name_field"] = parse_field_choice(dialog.cmbInputPlaneRakeSrcFld.currentText(),
-                                                                                    tFieldUndefined)
+                    dInputLayerParams["pln_rake_type"] = dialog.cmbInputAxisRakeType.currentText()
+                    dInputLayerParams["ln_rake_name_field"] = parse_field_choice(dialog.cmbInputAxisRakeSrcFld.currentText(),
+                                                                                  tFieldUndefined)
 
                     dInputLayerParams["ln_azimuth_type"] = dialog.cmbInputAxisAzimType.currentText()
                     dInputLayerParams["ln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputAxisAzimSrcFld.currentText(),
@@ -288,17 +293,17 @@ class StereoplotWidget(QWidget):
 
                 ltAttitudeFldNms = [dInputLayerParams["pln_azimuth_name_field"],
                                     dInputLayerParams["pln_dip_name_field"],
-                                    dInputLayerParams["pln_rake_name_field"],
                                     dInputLayerParams["ln_azimuth_name_field"],
                                     dInputLayerParams["ln_dip_name_field"],
-                                    dInputLayerParams["ln_movsen_name_field"]]
+                                    dInputLayerParams["ln_movsen_name_field"],
+                                    dInputLayerParams["ln_rake_name_field"],]
 
                 # set input data presence and type
 
                 self.dLyrSrcParams = dict(LayerSrcData=True,
                                           SrcLayer=lyrInputLayer,
                                           AttidudeFldNames=ltAttitudeFldNms,
-                                          InputDataTypes=layer_input_type(dInputLayerParams))
+                                          InputDataTypes=layer_inputs_types(dInputLayerParams))
                 self.reset_text_src_data()  # discard text-derived data
 
             # text as input
@@ -368,12 +373,12 @@ class StereoplotWidget(QWidget):
             data_types_to_extract = [("x", float), ("y", float)]
             if input_data_types["plane_data"]:
                 data_types_to_extract += [("pln_dipdir", parse_azimuth), ("pln_dipang", float)]
-                if input_data_types["pln_rake_value"]:
-                    data_types_to_extract.append(("pln_rk", float))
             if input_data_types["line_data"]:
                 data_types_to_extract += [("ln_tr", float), ("ln_pl", float)]
                 if input_data_types["ln_ms_type"]:
                     data_types_to_extract.append(("ln_ms", str))
+                if input_data_types["ln_rake_value"]:
+                    data_types_to_extract.append(("ln_rk", float))
 
             # extract and parse raw data
 
@@ -428,7 +433,7 @@ class StereoplotWidget(QWidget):
                         return gv.tp
 
                     for row in struct_vals:
-                        if not "pln_dipdir" in row or not "pln_dipang" in row or not "pln_rk" in row:
+                        if not "pln_dipdir" in row or not "pln_dipang" in row or not "ln_rk" in row:
                             return None
                         else:
                             continue
@@ -437,7 +442,7 @@ class StereoplotWidget(QWidget):
                     for row in struct_vals:
                         dip_dir = row["pln_dipdir"]
                         dip_ang = row["pln_dipang"]
-                        rake = row["pln_rk"]
+                        rake = row["ln_rk"]
                         lin_tr, lin_pl = parse_rake(dip_dir, dip_ang, rake)
                         vals.append((dip_dir, dip_ang, rake, lin_tr, lin_pl))
 
@@ -545,13 +550,14 @@ class StereoplotWidget(QWidget):
                                               self.dLyrSrcParams["AttidudeFldNames"])
             lStructuralValues = parse_layer_data(self.dLyrSrcParams["InputDataTypes"],
                                                  lGeoStructurData)
-        else:
+        elif self.dLyrSrcParams["LayerSrcData"]:
             pass
+        else:
+            raise Exception("Unknown data type source")
 
         dialog = PlotStereonetDlg()
         if dialog.exec_():
-            dPlotSettings = dict(tStereoplotStatus=dialog.cmbStereonetFigure.currentText(),
-                                 bPlotPlanes=dialog.chkPlanes.isChecked(),
+            dPlotSettings = dict(bPlotPlanes=dialog.chkPlanes.isChecked(),
                                  tPlotPlanesFormat=dialog.cmbPlanesType.currentText(),
                                  bPlotPlaneswithRake=dialog.chkPlaneswithRake.isChecked(),
                                  tPlotPlaneswithRakeFormat=dialog.cmbPlaneswithRakeType.currentText(),
