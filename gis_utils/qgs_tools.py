@@ -81,7 +81,8 @@ def pt_geoms_attrs(pt_layer, field_list=None):
         features = pt_layer.getFeatures()
 
     provider = pt_layer.dataProvider()
-    field_indices = [provider.fieldNameIndex(field_name) for field_name in field_list if field_name is not None]
+    field_indices = [provider.fieldNameIndex(field_name) for field_name in field_list if field_name]
+
     # retrieve selected features with their geometry and relevant attributes
     rec_list = []
     for feature in features:
