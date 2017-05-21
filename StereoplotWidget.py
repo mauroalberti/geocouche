@@ -124,80 +124,107 @@ class StereoplotWidget(QWidget):
 
     def define_input(self):
 
-        def parse_field_choice(val, choose_message):
+        def extract_input_types():
 
-            if val == choose_message:
-                return ''
-            else:
-                return val
+            def parse_field_choice(val, choose_message):
 
-        def layer_input_type_valid(dInputLayerParams):
+                if val == choose_message:
+                    return ''
+                else:
+                    return val
+
+            dInputLayerParams = dict()
+
+            try:
+                dInputLayerParams["pln_azimuth_type"] = dialog.cmbInputLyrPlaneOrAzimType.currentText()
+
+                dInputLayerParams["pln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
+                                                                                    tFieldUndefined)
+
+                dInputLayerParams["pln_dip_type"] = dialog.cmbInputPlaneOrientDipType.currentText()
+                dInputLayerParams["pln_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
+                                                                                tFieldUndefined)
+
+                dInputLayerParams["pln_rake_type"] = dialog.cmbInputAxisRakeType.currentText()
+                dInputLayerParams["ln_rake_name_field"] = parse_field_choice(dialog.cmbInputAxisRakeSrcFld.currentText(),
+                                                                              tFieldUndefined)
+
+                dInputLayerParams["ln_azimuth_type"] = dialog.cmbInputAxisAzimType.currentText()
+                dInputLayerParams["ln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputAxisAzimSrcFld.currentText(),
+                                                                                  tFieldUndefined)
+
+                dInputLayerParams["ln_dip_type"] = dialog.cmbInputAxisDipType.currentText()
+                dInputLayerParams["ln_dip_name_field"] = parse_field_choice(dialog.cmbInputAxisDipSrcFld.currentText(),
+                                                                              tFieldUndefined)
+
+                dInputLayerParams["ln_movsen_type"] = dialog.cmbInputAxisMovSenseType.currentText()
+                dInputLayerParams["ln_movsen_name_field"] = parse_field_choice(dialog.cmbInputAxisMovSenseSrcFld.currentText(),
+                                                                                  tFieldUndefined)
+            except:
+                self.warn("Incorrect input field definitions")
+                return
+
+            return dInputLayerParams
+
+        def is_valid_layer_input_type(dInputLayerParams):
 
             if dInputLayerParams["pln_azimuth_name_field"] is not None and \
-              dInputLayerParams["pln_dip_name_field"] is not None:
+                            dInputLayerParams["pln_dip_name_field"] is not None:
                 return True
             elif dInputLayerParams["ln_azimuth_name_field"] is not None and \
-              dInputLayerParams["ln_dip_name_field"] is not None:
+                            dInputLayerParams["ln_dip_name_field"] is not None:
                 return True
             else:
                 return False
 
-        def layer_inputs_types(dInputParams):
+        def actual_layer_inputs_types(dInputParams):
 
             # define type for planar data
 
-            bIsPlaneDefined = True if dInputParams["pln_azimuth_name_field"] and dInputParams["pln_dip_name_field"] else False
+            bIsPlaneDefined = True if dInputParams["pln_azimuth_name_field"] and dInputParams[
+                "pln_dip_name_field"] else False
 
             if bIsPlaneDefined:
-                pln_az_type = "dip_dir" if dInputParams["pln_azimuth_type"] == "dip direction" else "strike_rhr"
-                pln_dip_type = "dip"
+                tPlaneAzimType = "dip_dir" if dInputParams["pln_azimuth_type"] == "dip direction" else "strike_rhr"
+                tPlaneDipType = "dip"
             else:
-                pln_az_type = None
-                pln_dip_type = None
+                tPlaneAzimType = None
+                tPlaneDipType = None
 
             # define type for linear data
 
-            bIsLnTrndPlngDefined = True if dInputParams["ln_azimuth_name_field"] and dInputParams["ln_dip_name_field"] else False
-            bIsLnMovSnsDefined = True if dInputParams["ln_movsen_name_field"] else False
-            bIsLnRkDefined = True if bIsPlaneDefined and not bIsLnTrndPlngDefined and dInputParams["ln_rake_name_field"] else False
+            bIsLnTrndPlngDefined = True if dInputParams["ln_azimuth_name_field"] and dInputParams[
+                "ln_dip_name_field"] else False
+            bIsLnMovSnsDefined = True if bIsLnTrndPlngDefined and dInputParams["ln_movsen_name_field"] else False
+            bIsLnRkDefined = True if bIsPlaneDefined and dInputParams["ln_rake_name_field"] else False
 
-            if (dInputParams["ln_azimuth_name_field"] is not None and \
-                    dInputParams["ln_dip_name_field"] is not None) or \
-                    dInputParams["ln_rake_name_field"] is not None:
-                line_data = True
-                ln_az_type = "trend"
-                ln_dip_type = "plunge"
-                if dInputParams["ln_movsen_name_field"] is not None:
-                    ln_ms_value = True
-                    ln_ms_type = "movement_sense"
-                else:
-                    ln_ms_value = False
-                    ln_ms_type = None
-                if dInputParams["ln_rake_name_field"] is not None:
-                    ln_rake_value = True
-                    ln_rake_type = "rake"
-                else:
-                    ln_rake_value = False
-                    ln_rake_type = None
+            if bIsLnTrndPlngDefined:
+                tLineAzimType = "trend"
+                tLineDipType = "plunge"
             else:
-                line_data = False
-                ln_az_type = None
-                ln_dip_type = None
-                ln_ms_value = False
-                ln_ms_type = None
-                ln_rake_value = False
-                ln_rake_type = None
+                tLineAzimType = None
+                tLineDipType = None
 
-            return dict(plane_data=bIsPlaneDefined,
-                        pln_az_type=pln_az_type,
-                        pln_dip_type=pln_dip_type,
-                        pln_rake_type=ln_rake_type,
-                        ln_rake_value=ln_rake_value,
-                        line_data=line_data,
-                        ln_az_type=ln_az_type,
-                        ln_dip_type=ln_dip_type,
-                        ln_ms_type=ln_ms_type,
-                        ln_ms_value=ln_ms_value)
+            if bIsLnMovSnsDefined:
+                tLineMovSenseType = "movement_sense"
+            else:
+                tLineMovSenseType = None
+
+            if bIsLnRkDefined:
+                tLineRakeType = "rake"
+            else:
+                tLineRakeType = None
+
+            return dict(has_plane_data=bIsPlaneDefined,
+                        pln_az_type=tPlaneAzimType,
+                        pln_dip_type=tPlaneDipType,
+                        has_line_trpl_data=bIsLnTrndPlngDefined,
+                        ln_az_type=tLineAzimType,
+                        ln_dip_type=tLineDipType,
+                        has_ln_ms_data=bIsLnMovSnsDefined,
+                        ln_ms_type=tLineMovSenseType,
+                        has_rake_data=bIsLnRkDefined,
+                        ln_rake_type=tLineRakeType)
 
         def orientations_from_text(data_type, azimuth_type, text, sep=','):
 
@@ -216,17 +243,17 @@ class StereoplotWidget(QWidget):
                     planes.append([parse_plane_dirdir(azim), dip_ang])
                 elif data_type == "axes":
                     trend, plunge = map(float, raw_values)
-                    axes.append([trend, plunge])
+                    line.append([trend, plunge])
                 elif data_type == "planes & axes":
                     azim, dip_ang, trend, plunge = map(float, raw_values)
                     planes.append([parse_plane_dirdir(azim), dip_ang])
-                    axes.append([trend, plunge])
+                    line.append([trend, plunge])
                 elif data_type == "fault planes with rake":
                     azim, dip_ang, rake = map(float, raw_values)
                     dip_dir = parse_plane_dirdir(azim)
                     planes.append([dip_dir, dip_ang])
                     slick_tr, slick_pl = GPlane(dip_dir, dip_ang).rake_to_gv(rake).downward.tp
-                    axes.append([slick_tr, slick_pl])
+                    line.append([slick_tr, slick_pl])
                     faults.append([dip_dir, dip_ang, rake, slick_tr, slick_pl])
 
             if text is None or text == '':
@@ -237,55 +264,30 @@ class StereoplotWidget(QWidget):
                 return False, "No value available"
 
             planes = []
-            axes = []
+            line = []
             faults = []
             try:
                 map(extract_values, rows)
-                return True, (planes, axes, faults)
+                return True, (planes, line, faults)
             except:
                 return False, "Error in input values"
 
         llyrLoadedPointLayers = loaded_point_layers()
         dialog = StereoplotInputDlg(llyrLoadedPointLayers)
         if dialog.exec_():
-            # layer as input
-            if dialog.tabWdgt.currentIndex() == 0:
+
+            if dialog.tabWdgt.currentIndex() == 0:  # layer as input
+
+                # check that input layer is defined
                 try:
                     lyrInputLayer = llyrLoadedPointLayers[dialog.cmbInputLayers.currentIndex() - 1]
                 except:
                     self.warn("Incorrect point layer choice")
                     return
-                dInputLayerParams = dict()
-                try:
-                    dInputLayerParams["pln_azimuth_type"] = dialog.cmbInputLyrPlaneOrAzimType.currentText()
 
-                    dInputLayerParams["pln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputPlaneAzimSrcFld.currentText(),
-                                                                                        tFieldUndefined)
-
-                    dInputLayerParams["pln_dip_type"] = dialog.cmbInputPlaneOrientDipType.currentText()
-                    dInputLayerParams["pln_dip_name_field"] = parse_field_choice(dialog.cmbInputPlaneDipSrcFld.currentText(),
-                                                                                    tFieldUndefined)
-
-                    dInputLayerParams["pln_rake_type"] = dialog.cmbInputAxisRakeType.currentText()
-                    dInputLayerParams["ln_rake_name_field"] = parse_field_choice(dialog.cmbInputAxisRakeSrcFld.currentText(),
-                                                                                  tFieldUndefined)
-
-                    dInputLayerParams["ln_azimuth_type"] = dialog.cmbInputAxisAzimType.currentText()
-                    dInputLayerParams["ln_azimuth_name_field"] = parse_field_choice(dialog.cmbInputAxisAzimSrcFld.currentText(),
-                                                                                      tFieldUndefined)
-
-                    dInputLayerParams["ln_dip_type"] = dialog.cmbInputAxisDipType.currentText()
-                    dInputLayerParams["ln_dip_name_field"] = parse_field_choice(dialog.cmbInputAxisDipSrcFld.currentText(),
-                                                                                  tFieldUndefined)
-
-                    dInputLayerParams["ln_movsen_type"] = dialog.cmbInputAxisMovSenseType.currentText()
-                    dInputLayerParams["ln_movsen_name_field"] = parse_field_choice(dialog.cmbInputAxisMovSenseSrcFld.currentText(),
-                                                                                      tFieldUndefined)
-                except:
-                    self.warn("Incorrect input field definitions")
-                    return
-
-                if not layer_input_type_valid(dInputLayerParams):
+                # extract input type definitions
+                dInputLayerParams = extract_input_types()
+                if not is_valid_layer_input_type(dInputLayerParams):
                     self.warn("Invalid/incomplete parameters")
                     return
 
@@ -303,11 +305,12 @@ class StereoplotWidget(QWidget):
                 self.dLyrSrcParams = dict(LayerSrcData=True,
                                           SrcLayer=lyrInputLayer,
                                           AttidudeFldNames=ltAttitudeFldNms,
-                                          InputDataTypes=layer_inputs_types(dInputLayerParams))
+                                          InputDataTypes=actual_layer_inputs_types(dInputLayerParams))
+
                 self.reset_text_src_data()  # discard text-derived data
 
-            # text as input
-            elif dialog.tabWdgt.currentIndex() == 1:
+            elif dialog.tabWdgt.currentIndex() == 1:  # text as input
+
                 try:
                     tDataType = dialog.cmbInputDataType.currentText()
                     tPlaneAzimType = dialog.cmbInputPlaneOrAzimType.currentText()
@@ -326,7 +329,9 @@ class StereoplotWidget(QWidget):
                     self.dTxtSrcParams["AxisOrientations"] = tResult[1]
                     self.dTxtSrcParams["FaultRakeOrientations"] = tResult[2]
                     self.reset_layer_src_data()  # discard layer-derived data
-            else:
+
+            else:  # unknown choice
+
                 self.warn("Error with input data choice")
                 return
     
@@ -357,7 +362,7 @@ class StereoplotWidget(QWidget):
 
         def parse_layer_data(input_data_types, structural_data):
 
-            def parse_azimuth(azimuth, az_type=input_data_types["pln_az_type"]):
+            def parse_azimuth(azimuth):
 
                 if az_type == "dip_dir":
                     offset = 0.0
@@ -371,14 +376,15 @@ class StereoplotWidget(QWidget):
             # create list of text holders for data to extract
 
             data_types_to_extract = [("x", float), ("y", float)]
-            if input_data_types["plane_data"]:
+            if input_data_types["has_plane_data"]:
+                az_type = input_data_types["pln_az_type"]
                 data_types_to_extract += [("pln_dipdir", parse_azimuth), ("pln_dipang", float)]
-            if input_data_types["line_data"]:
+            if input_data_types["has_line_trpl_data"]:
                 data_types_to_extract += [("ln_tr", float), ("ln_pl", float)]
-                if input_data_types["ln_ms_type"]:
-                    data_types_to_extract.append(("ln_ms", str))
-                if input_data_types["ln_rake_value"]:
-                    data_types_to_extract.append(("ln_rk", float))
+            if input_data_types["has_ln_ms_data"]:
+                data_types_to_extract.append(("ln_ms", str))
+            if input_data_types["has_rake_data"]:
+                data_types_to_extract.append(("ln_rk", float))
 
             # extract and parse raw data
 
