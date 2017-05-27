@@ -14,7 +14,7 @@ ltInputPlaneDipTypes = ["dip angle"]
 ltInputAxisRakeTypes = ["rake - Aki & Richards, 1980"]
 ltInputAxisAzimuthTypes = ["trend"]
 ltInputAxisDipTypes = ["plunge"]
-ltInputAxisMovSenseTypes = ["mov. sense - N/T/L/R"]
+ltInputAxisMovSenseTypes = ["mov. sense - N or R"]
 
 tLayerChooseMsg = "choose"
 tFieldUndefined = "---"
@@ -414,7 +414,7 @@ class PlotStereonetDlg(QDialog):
         lytPlot.addWidget(self.chkPlaneswithRake, 3, 0, 1, 1)
         lytPlot.addWidget(QLabel("as"), 3, 1, 1, 1)
         self.cmbPlaneswithRakeType = QComboBox()
-        self.cmbPlaneswithRakeType.insertItems(0, ["faults with skickenlines", "P-T axes", "T-L diagrams"])
+        self.cmbPlaneswithRakeType.insertItems(0, ["faults with skickenlines", "T-L diagrams"])
         lytPlot.addWidget(self.cmbPlaneswithRakeType, 3, 2, 1, 1)
 
         grpPlot.setLayout(lytPlot)

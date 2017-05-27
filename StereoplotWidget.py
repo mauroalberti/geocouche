@@ -24,10 +24,8 @@
  ***************************************************************************/
 """
 
-# from PyQt4.QtCore import QSettings
-# from PyQt4.QtGui import QColor
 
-from .apsg import *
+from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
 from .auxiliary_windows import *
 from .gsf.geometry import GPlane, GAxis
@@ -442,7 +440,7 @@ class StereoplotWidget(QWidget):
 
                     line_data = []
                     for row in struct_vals:
-                        if not (("ln_tr" in row and "ln_pl" in row) or \
+                        if not (("ln_tr" in row and "ln_pl" in row) or
                                 ("pln_dipdir" in row and "pln_dipang" in row and "ln_rk" in row)):
                             continue
                         else:
@@ -458,21 +456,43 @@ class StereoplotWidget(QWidget):
 
                 def get_fault_slikenline_data(struct_vals):
 
+                    fault_slickenline_data = []
                     for row in struct_vals:
-                        if not "pln_dipdir" in row or not "pln_dipang" in row or not "ln_rk" in row:
-                            return None
+                        if "pln_dipdir" in row and "pln_dipang" in row:
+                            dip_dir = row["pln_dipdir"]
+                            dip_ang = row["pln_dipang"]
+                            if "ln_rk" in row:
+                                rake = row["ln_rk"]
+                                lin_tr, lin_pl = downaxis_from_rake(dip_dir, dip_ang, rake)
+                                if rake > 0.0 and rake < 180.0:  # reverse faults according to Aki & Richards, 1980 convention
+                                    sense = 1
+                                elif rake < 0.0 and rake > -180.0: # normal faults according to Aki & Richards, 1980 convention
+                                    sense = -1
+                                else:
+                                    self.warn("Currently transcurrent data (i.e., rake = +/-180, are not handled")
+                                    return []
+                            elif "ln_tr" in row and "ln_pl" in row and "ln_ms" in row:
+                                lin_tr, lin_pl = row["ln_tr"], row["ln_pl"]
+                                mov_sense = row["ln_ms"].upper()
+                                if mov_sense == "":
+                                    continue
+                                elif mov_sense == "N":
+                                    sense = -1
+                                elif mov_sense == "R":
+                                    sense = 1
+                                else:
+                                    self.warn("Unrecognized movement type")
+                                    return []
+                            else:
+                                continue
+                            fault_slickenline_data.append((dip_dir, dip_ang, lin_tr, lin_pl, sense))
                         else:
                             continue
 
-                    vals = []
-                    for row in struct_vals:
-                        dip_dir = row["pln_dipdir"]
-                        dip_ang = row["pln_dipang"]
-                        rake = row["ln_rk"]
-                        lin_tr, lin_pl = downaxis_from_rake(dip_dir, dip_ang, rake)
-                        vals.append((dip_dir, dip_ang, rake, lin_tr, lin_pl))
+                    if not fault_slickenline_data:
+                        self.warn("No fault-slickenline data extracted")
 
-                    return vals
+                    return fault_slickenline_data
 
                 line_style = self.dPlotStyles["line_style"]
                 line_width = parse_size(self.dPlotStyles["line_width"])
@@ -492,7 +512,7 @@ class StereoplotWidget(QWidget):
                     else:
                         for plane in plane_data:
                             if plot_setts["tPlotPlanesFormat"] == "great circles":
-                                p = Fol(*plane)
+                                p = aFol(*plane)
                                 self.stereonet.plane(p,
                                                      linestyle=line_style,
                                                      linewidth=line_width,
@@ -500,7 +520,7 @@ class StereoplotWidget(QWidget):
                                                      alpha=line_alpha)
                             else:
                                 line_rec = GPlane(*plane).normal.downward.tp
-                                l = Lin(*line_rec)
+                                l = aLin(*line_rec)
                                 self.stereonet.line(l,
                                                     marker=marker_style,
                                                     markersize=marker_size,
@@ -508,29 +528,28 @@ class StereoplotWidget(QWidget):
                                                     alpha=marker_transp)
 
                 if plot_setts["bPlotPlaneswithRake"]:
-                    assert plot_setts["tPlotPlaneswithRakeFormat"] in ["faults with skickenlines", "P-T axes", "T-L diagrams"]
+                    assert plot_setts["tPlotPlaneswithRakeFormat"] in ["faults with skickenlines", "T-L diagrams"]
                     flt_slik_data = get_fault_slikenline_data(structural_values)
                     if not flt_slik_data:
                         self.warn(("No fault-slickenline data"))
                     else:
-                        if plot_setts["tPlotPlaneswithRakeFormat"] != "faults with skickenlines":
-                            self.warn("{} not yet implemented".format(plot_setts["tPlotPlaneswithRakeFormat"]))
-                        else:
-                            for flt_slick in flt_slik_data:
-                                dip_dir, dip_ang, rake, lin_tr, lin_pl = flt_slick
-                                if rake > 0:  # reverse faults according to Aki & Richards, 1980 convention
-                                    sense = 1
-                                else: # normal faults according to Aki & Richards, 1980 convention
-                                    sense = -1
-                                flt = Fault(dip_dir, dip_ang, lin_tr, lin_pl, sense)
-                                if plot_setts["tPlotPlaneswithRakeFormat"] == "faults with skickenlines":
-                                    self.stereonet.fault(flt,
+                        for flt_slick in flt_slik_data:
+                            dip_dir, dip_ang, lin_tr, lin_pl, sense = flt_slick
+                            flt = aFault(dip_dir, dip_ang, lin_tr, lin_pl, sense)
+                            if plot_setts["tPlotPlaneswithRakeFormat"] == "faults with skickenlines":
+                                self.stereonet.fault(flt,
+                                                     linestyle=line_style,
+                                                     linewidth=line_width,
+                                                     color=line_color,
+                                                     alpha=line_alpha)
+                            elif plot_setts["tPlotPlaneswithRakeFormat"] == "T-L diagrams":
+                                self.stereonet.hoeppner(flt,
                                                          linestyle=line_style,
                                                          linewidth=line_width,
                                                          color=line_color,
                                                          alpha=line_alpha)
-                                else:
-                                    raise Exception("Not yet implemented")
+                            else:
+                                raise Exception("Not yet implemented")
 
                 if plot_setts["bPlotAxes"]:
                     assert plot_setts["tPlotAxesFormat"] in ["poles", "perpendicular planes"]
@@ -540,7 +559,7 @@ class StereoplotWidget(QWidget):
                     else:
                         for line_rec in line_data:
                             if plot_setts["tPlotAxesFormat"] == "poles":
-                                l = Lin(*line_rec)
+                                l = aLin(*line_rec)
                                 self.stereonet.line(l,
                                                     marker=marker_style,
                                                     markersize=marker_size,
@@ -548,7 +567,7 @@ class StereoplotWidget(QWidget):
                                                     alpha=marker_transp)
                             else:
                                 plane = GAxis(*line_rec).normal_gplane.dda
-                                p = Fol(*plane)
+                                p = aFol(*plane)
                                 self.stereonet.plane(p,
                                                      linestyle=line_style,
                                                      linewidth=line_width,
