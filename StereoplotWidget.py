@@ -8,7 +8,7 @@
 -------------------
 
     Begin                : 2015.04.18
-    Date                 : 2017.05.06
+    Date                 : 2017.05.28
     Copyright            : (C) 2015-2017 by Mauro Alberti
     Email                : alberti dot m65 at gmail dot com
 
@@ -31,6 +31,8 @@ from .auxiliary_windows import *
 from .gsf.geometry import GPlane, GAxis
 from .gis_utils.qgs_tools import pt_geoms_attrs
 from .mpl_utils.save_figure import FigureExportDlg
+from .fault_utils.utils import rake_to_apsg_movsense, movsense_to_apsg_movsense
+from .fault_utils.errors import RakeInputException
 
 
 class StereoplotWidget(QWidget):
@@ -79,15 +81,14 @@ class StereoplotWidget(QWidget):
     def reset_layer_src_data(self):
 
         self.dLyrSrcParams = dict(LayerSrcData=False,
-                                  GeoStructurData=[],
+                                  SrcLayer=None,
+                                  AttidudeFldNames=[],
                                   InputDataTypes=[])
 
     def reset_text_src_data(self):
 
         self.dTxtSrcParams = dict(TextSrcData=False,
-                                  PlaneOrientations=[],
-                                  AxisOrientations=[],
-                                  FaultRakeOrientations=[])
+                                  GestructuralData=[])
 
     def setup_gui(self):
 
@@ -231,52 +232,72 @@ class StereoplotWidget(QWidget):
             def extract_values(row):
 
                 def parse_plane_dirdir(az_raw):
+
                     if azimuth_type == "strike rhr":
                         dip_dir = az_raw + 90.0
                     else:
                         dip_dir = az_raw
+
                     return dip_dir % 360.0
 
+                def parse_fault_mov_sense(raw_values):
+
+                    azim, dip_ang, lin_trend, lin_plunge = map(float, raw_values[:4])
+                    mov_sense = str(raw_values[4])
+
+                    return azim, dip_ang, lin_trend, lin_plunge, mov_sense
+
                 raw_values = row.split(sep)
+                record_dict = dict()
                 if data_type == "planes":
                     azim, dip_ang = map(float, raw_values)
-                    planes.append([parse_plane_dirdir(azim), dip_ang])
+                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                    record_dict["pln_dipang"] = dip_ang
                 elif data_type == "axes":
                     trend, plunge = map(float, raw_values)
-                    line.append([trend, plunge])
+                    record_dict["ln_tr"] = trend
+                    record_dict["ln_pl"] = plunge
                 elif data_type == "planes & axes":
                     azim, dip_ang, trend, plunge = map(float, raw_values)
-                    planes.append([parse_plane_dirdir(azim), dip_ang])
-                    line.append([trend, plunge])
+                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                    record_dict["pln_dipang"] = dip_ang
+                    record_dict["ln_tr"] = trend
+                    record_dict["ln_pl"] = plunge
+                elif data_type == "fault planes with slickenline trend, plunge and movement sense":
+                    azim, dip_ang, slick_tr, slick_pl, mov_sense = parse_fault_mov_sense(raw_values)
+                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                    record_dict["pln_dipang"] = dip_ang
+                    record_dict["ln_tr"] = slick_tr
+                    record_dict["ln_pl"] = slick_pl
+                    record_dict["ln_ms"] = mov_sense
                 elif data_type == "fault planes with rake":
                     azim, dip_ang, rake = map(float, raw_values)
-                    dip_dir = parse_plane_dirdir(azim)
-                    planes.append([dip_dir, dip_ang])
-                    slick_tr, slick_pl = GPlane(dip_dir, dip_ang).rake_to_gv(rake).downward.tp
-                    line.append([slick_tr, slick_pl])
-                    faults.append([dip_dir, dip_ang, rake, slick_tr, slick_pl])
+                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                    record_dict["pln_dipang"] = dip_ang
+                    record_dict["ln_rk"] = rake
+                else:
+                    raise Exception("Unimplemented input type")
+
+                return record_dict
 
             if text is None or text == '':
                 return False, "No value available"
-
             rows = text.split("\n")
             if len(rows) == 0:
                 return False, "No value available"
-
-            planes = []
-            line = []
-            faults = []
             try:
-                map(extract_values, rows)
-                return True, (planes, line, faults)
-            except:
-                return False, "Error in input values"
+                geostructural_data = map(extract_values, rows)
+                return True, geostructural_data
+            except Exception as e:
+                return False, e.message
 
         llyrLoadedPointLayers = loaded_point_layers()
         dialog = StereoplotInputDlg(llyrLoadedPointLayers)
         if dialog.exec_():
 
             if dialog.tabWdgt.currentIndex() == 0:  # layer as input
+
+                self.reset_text_src_data()  # discard text-derived data
 
                 # check that input layer is defined
                 try:
@@ -302,14 +323,14 @@ class StereoplotWidget(QWidget):
 
                 # set input data presence and type
 
-                self.dLyrSrcParams = dict(LayerSrcData=True,
-                                          SrcLayer=lyrInputLayer,
-                                          AttidudeFldNames=ltAttitudeFldNms,
-                                          InputDataTypes=actual_layer_inputs_types(dInputLayerParams))
-
-                self.reset_text_src_data()  # discard text-derived data
+                self.dLyrSrcParams["LayerSrcData"] = True
+                self.dLyrSrcParams["SrcLayer"] = lyrInputLayer
+                self.dLyrSrcParams["AttidudeFldNames"] = ltAttitudeFldNms
+                self.dLyrSrcParams["InputDataTypes"] = actual_layer_inputs_types(dInputLayerParams)
 
             elif dialog.tabWdgt.currentIndex() == 1:  # text as input
+
+                self.reset_layer_src_data()  # discard layer-derived data
 
                 try:
                     tDataType = dialog.cmbInputDataType.currentText()
@@ -325,12 +346,12 @@ class StereoplotWidget(QWidget):
                     return
                 else:
                     self.dTxtSrcParams["TextSrcData"] = True
-                    self.dTxtSrcParams["PlaneOrientations"] = tResult[0]
-                    self.dTxtSrcParams["AxisOrientations"] = tResult[1]
-                    self.dTxtSrcParams["FaultRakeOrientations"] = tResult[2]
-                    self.reset_layer_src_data()  # discard layer-derived data
+                    self.dTxtSrcParams["GestructuralData"] = tResult
 
             else:  # unknown choice
+
+                self.reset_text_src_data()  # discard text-derived data
+                self.reset_layer_src_data()  # discard layer-derived data
 
                 self.warn("Error with input data choice")
                 return
@@ -397,196 +418,195 @@ class StereoplotWidget(QWidget):
 
             return lSrcStructuralVals
 
-        def plot_dataset(struc_vals, plot_setts):
+        def plot_dataset(structural_values, plot_setts):
 
-            def plot_data_in_stereonet(structural_values):
+            def parse_color(color_name):
+                """
+                return tuple of three float values [0,1]
+                """
 
-                def parse_color(color_name):
-                    """
-                    return tuple of three float values [0,1]
-                    """
+                color = QColor(color_name)
+                red = color.red() / 255.0
+                green = color.green() / 255.0
+                blue = color.blue() / 255.0
 
-                    color = QColor(color_name)
-                    red = color.red() / 255.0
-                    green = color.green() / 255.0
-                    blue = color.blue() / 255.0
+                return red, green, blue
 
-                    return red, green, blue
+            def parse_size(tSizePts):
 
-                def parse_size(tSizePts):
+                return float(tSizePts.split()[0])
 
-                    return float(tSizePts.split()[0])
+            def parse_transparency(tTranspar):
 
-                def parse_transparency(tTranspar):
+                return 1.0 - (float(tTranspar[:-1]) / 100.0)  # removes final '%' from input value
 
-                    return 1.0 - (float(tTranspar[:-1]) / 100.0)  # removes final '%' from input value
+            def downaxis_from_rake(dipdir, dipang, rk):
 
-                def downaxis_from_rake(dipdir, dipang, rk):
+                return GPlane(dipdir, dipang).rake_to_gv(float(rk)).downward.tp
 
-                    return GPlane(dipdir, dipang).rake_to_gv(float(rk)).downward.tp
+            def get_plane_data(struct_vals):
 
-                def get_plane_data(struct_vals):
+                plane_data = []
+                for row in struct_vals:
+                    if not ("pln_dipdir" in row and "pln_dipang" in row):
+                        continue
+                    else:
+                        plane_data.append([row["pln_dipdir"], row["pln_dipang"]])
 
-                    plane_data = []
-                    for row in struct_vals:
-                        if not ("pln_dipdir" in row and "pln_dipang" in row):
-                            continue
+                return plane_data
+
+            def get_line_data(struct_vals):
+
+                line_data = []
+                for row in struct_vals:
+                    if not (("ln_tr" in row and "ln_pl" in row) or
+                            ("pln_dipdir" in row and "pln_dipang" in row and "ln_rk" in row)):
+                        continue
+                    else:
+                        if "pln_dipdir" in row and "pln_dipang" in row and "ln_rk" in row:
+                            lin_tr, lin_pl = downaxis_from_rake(row["pln_dipdir"], row["pln_dipang"], row["ln_rk"])
+                        elif "ln_tr" in row and "ln_pl" in row:
+                            lin_tr, lin_pl = row["ln_tr"], row["ln_pl"]
                         else:
-                            plane_data.append([row["pln_dipdir"], row["pln_dipang"]])
-
-                    return plane_data
-
-                def get_line_data(struct_vals):
-
-                    line_data = []
-                    for row in struct_vals:
-                        if not (("ln_tr" in row and "ln_pl" in row) or
-                                ("pln_dipdir" in row and "pln_dipang" in row and "ln_rk" in row)):
                             continue
-                        else:
-                            if "pln_dipdir" in row and "pln_dipang" in row and "ln_rk" in row:
-                                lin_tr, lin_pl = downaxis_from_rake(row["pln_dipdir"], row["pln_dipang"], row["ln_rk"])
-                            elif "ln_tr" in row and "ln_pl" in row:
-                                lin_tr, lin_pl = row["ln_tr"], row["ln_pl"]
-                            else:
+                        line_data.append([lin_tr, lin_pl])
+
+                return line_data
+
+            def get_fault_slikenline_data(struct_vals):
+
+                fault_slickenline_data = []
+                for row in struct_vals:
+                    if "pln_dipdir" in row and "pln_dipang" in row:
+                        dip_dir = row["pln_dipdir"]
+                        dip_ang = row["pln_dipang"]
+                        if "ln_rk" in row:
+                            rake = row["ln_rk"]
+                            lin_tr, lin_pl = downaxis_from_rake(dip_dir, dip_ang, rake)
+                            try:
+                                sense = rake_to_apsg_movsense(rake)
+                            except RakeInputException as e:
+                                self.warn(e.message)
+                                return []
+                        elif "ln_tr" in row and "ln_pl" in row and "ln_ms" in row:
+                            lin_tr, lin_pl = row["ln_tr"], row["ln_pl"]
+                            mov_sense = row["ln_ms"].upper()
+                            if mov_sense == "":
                                 continue
-                            line_data.append([lin_tr, lin_pl])
-
-                    return line_data
-
-                def get_fault_slikenline_data(struct_vals):
-
-                    fault_slickenline_data = []
-                    for row in struct_vals:
-                        if "pln_dipdir" in row and "pln_dipang" in row:
-                            dip_dir = row["pln_dipdir"]
-                            dip_ang = row["pln_dipang"]
-                            if "ln_rk" in row:
-                                rake = row["ln_rk"]
-                                lin_tr, lin_pl = downaxis_from_rake(dip_dir, dip_ang, rake)
-                                if rake > 0.0 and rake < 180.0:  # reverse faults according to Aki & Richards, 1980 convention
-                                    sense = 1
-                                elif rake < 0.0 and rake > -180.0: # normal faults according to Aki & Richards, 1980 convention
-                                    sense = -1
-                                else:
-                                    self.warn("Currently transcurrent data (i.e., rake = +/-180, are not handled")
-                                    return []
-                            elif "ln_tr" in row and "ln_pl" in row and "ln_ms" in row:
-                                lin_tr, lin_pl = row["ln_tr"], row["ln_pl"]
-                                mov_sense = row["ln_ms"].upper()
-                                if mov_sense == "":
-                                    continue
-                                elif mov_sense == "N":
-                                    sense = -1
-                                elif mov_sense == "R":
-                                    sense = 1
-                                else:
+                            else:
+                                try:
+                                    sense = movsense_to_apsg_movsense(mov_sense)
+                                except:
                                     self.warn("Unrecognized movement type")
                                     return []
-                            else:
-                                continue
-                            fault_slickenline_data.append((dip_dir, dip_ang, lin_tr, lin_pl, sense))
                         else:
                             continue
-
-                    if not fault_slickenline_data:
-                        self.warn("No fault-slickenline data extracted")
-
-                    return fault_slickenline_data
-
-                line_style = self.dPlotStyles["line_style"]
-                line_width = parse_size(self.dPlotStyles["line_width"])
-                line_color = parse_color(self.dPlotStyles["line_color"])
-                line_alpha = parse_transparency(self.dPlotStyles["line_transp"])
-
-                marker_style = ltMarkerStyles[self.dPlotStyles["marker_style"]]
-                marker_size = parse_size(self.dPlotStyles["marker_size"])
-                marker_color = parse_color(self.dPlotStyles["marker_color"])
-                marker_transp = parse_transparency(self.dPlotStyles["marker_transp"])
-
-                if plot_setts["bPlotPlanes"]:
-                    assert plot_setts["tPlotPlanesFormat"] in ["great circles", "normal axes"]
-                    plane_data = get_plane_data(structural_values)
-                    if not plane_data:
-                        self.warn("No plane data")
+                        fault_slickenline_data.append((dip_dir, dip_ang, lin_tr, lin_pl, sense))
                     else:
-                        for plane in plane_data:
-                            if plot_setts["tPlotPlanesFormat"] == "great circles":
-                                p = aFol(*plane)
-                                self.stereonet.plane(p,
+                        continue
+
+                if not fault_slickenline_data:
+                    self.warn("No fault-slickenline data extracted")
+
+                return fault_slickenline_data
+
+            line_style = self.dPlotStyles["line_style"]
+            line_width = parse_size(self.dPlotStyles["line_width"])
+            line_color = parse_color(self.dPlotStyles["line_color"])
+            line_alpha = parse_transparency(self.dPlotStyles["line_transp"])
+
+            marker_style = ltMarkerStyles[self.dPlotStyles["marker_style"]]
+            marker_size = parse_size(self.dPlotStyles["marker_size"])
+            marker_color = parse_color(self.dPlotStyles["marker_color"])
+            marker_transp = parse_transparency(self.dPlotStyles["marker_transp"])
+
+            if plot_setts["bPlotPlanes"]:
+                assert plot_setts["tPlotPlanesFormat"] in ["great circles", "normal axes"]
+                plane_data = get_plane_data(structural_values)
+                if not plane_data:
+                    self.warn("No plane data")
+                else:
+                    for plane in plane_data:
+                        if plot_setts["tPlotPlanesFormat"] == "great circles":
+                            p = aFol(*plane)
+                            self.stereonet.plane(p,
+                                                 linestyle=line_style,
+                                                 linewidth=line_width,
+                                                 color=line_color,
+                                                 alpha=line_alpha)
+                        elif plot_setts["tPlotPlanesFormat"] == "normal axes":
+                            line_rec = GPlane(*plane).normal.downward.tp
+                            l = aLin(*line_rec)
+                            self.stereonet.line(l,
+                                                marker=marker_style,
+                                                markersize=marker_size,
+                                                color=marker_color,
+                                                alpha=marker_transp)
+                        else:
+                            raise Exception("Not yet implemented")
+
+            if plot_setts["bPlotPlaneswithRake"]:
+                flt_slik_data = get_fault_slikenline_data(structural_values)
+                if not flt_slik_data:
+                    self.warn(("No fault-slickenline data"))
+                else:
+                    for flt_slick in flt_slik_data:
+                        dip_dir, dip_ang, lin_tr, lin_pl, sense = flt_slick
+                        flt = aFault(dip_dir, dip_ang, lin_tr, lin_pl, sense)
+                        if plot_setts["tPlotPlaneswithRakeFormat"] == "faults with skickenlines":
+                            self.stereonet.fault(flt,
+                                                 linestyle=line_style,
+                                                 linewidth=line_width,
+                                                 color=line_color,
+                                                 alpha=line_alpha)
+                        elif plot_setts["tPlotPlaneswithRakeFormat"] == "T-L diagrams":
+                            self.stereonet.hoeppner(flt,
                                                      linestyle=line_style,
                                                      linewidth=line_width,
                                                      color=line_color,
                                                      alpha=line_alpha)
-                            else:
-                                line_rec = GPlane(*plane).normal.downward.tp
-                                l = aLin(*line_rec)
-                                self.stereonet.line(l,
-                                                    marker=marker_style,
-                                                    markersize=marker_size,
-                                                    color=marker_color,
-                                                    alpha=marker_transp)
+                        else:
+                            raise Exception("Not yet implemented")
 
-                if plot_setts["bPlotPlaneswithRake"]:
-                    assert plot_setts["tPlotPlaneswithRakeFormat"] in ["faults with skickenlines", "T-L diagrams"]
-                    flt_slik_data = get_fault_slikenline_data(structural_values)
-                    if not flt_slik_data:
-                        self.warn(("No fault-slickenline data"))
-                    else:
-                        for flt_slick in flt_slik_data:
-                            dip_dir, dip_ang, lin_tr, lin_pl, sense = flt_slick
-                            flt = aFault(dip_dir, dip_ang, lin_tr, lin_pl, sense)
-                            if plot_setts["tPlotPlaneswithRakeFormat"] == "faults with skickenlines":
-                                self.stereonet.fault(flt,
-                                                     linestyle=line_style,
-                                                     linewidth=line_width,
-                                                     color=line_color,
-                                                     alpha=line_alpha)
-                            elif plot_setts["tPlotPlaneswithRakeFormat"] == "T-L diagrams":
-                                self.stereonet.hoeppner(flt,
-                                                         linestyle=line_style,
-                                                         linewidth=line_width,
-                                                         color=line_color,
-                                                         alpha=line_alpha)
-                            else:
-                                raise Exception("Not yet implemented")
+            if plot_setts["bPlotAxes"]:
+                line_data = get_line_data(structural_values)
+                if not line_data:
+                    self.warn(("No line data"))
+                else:
+                    for line_rec in line_data:
+                        if plot_setts["tPlotAxesFormat"] == "poles":
+                            l = aLin(*line_rec)
+                            self.stereonet.line(l,
+                                                marker=marker_style,
+                                                markersize=marker_size,
+                                                color=marker_color,
+                                                alpha=marker_transp)
+                        elif plot_setts["tPlotAxesFormat"] == "perpendicular planes":
+                            plane = GAxis(*line_rec).normal_gplane.dda
+                            p = aFol(*plane)
+                            self.stereonet.plane(p,
+                                                 linestyle=line_style,
+                                                 linewidth=line_width,
+                                                 color=line_color,
+                                                 alpha=line_alpha)
+                        else:
+                            raise Exception("Not yet implemented")
 
-                if plot_setts["bPlotAxes"]:
-                    assert plot_setts["tPlotAxesFormat"] in ["poles", "perpendicular planes"]
-                    line_data = get_line_data(structural_values)
-                    if not line_data:
-                        self.warn(("No line data"))
-                    else:
-                        for line_rec in line_data:
-                            if plot_setts["tPlotAxesFormat"] == "poles":
-                                l = aLin(*line_rec)
-                                self.stereonet.line(l,
-                                                    marker=marker_style,
-                                                    markersize=marker_size,
-                                                    color=marker_color,
-                                                    alpha=marker_transp)
-                            else:
-                                plane = GAxis(*line_rec).normal_gplane.dda
-                                p = aFol(*plane)
-                                self.stereonet.plane(p,
-                                                     linestyle=line_style,
-                                                     linewidth=line_width,
-                                                     color=line_color,
-                                                     alpha=line_alpha)
-
-            plot_data_in_stereonet(struc_vals)
-
-        if not self.dLyrSrcParams["LayerSrcData"] and not self.dTxtSrcParams["TextSrcData"]:
+        if not (self.dLyrSrcParams["LayerSrcData"] or self.dTxtSrcParams["TextSrcData"]):
             self.warn("No data to plot")
             return
+        elif self.dLyrSrcParams["LayerSrcData"] and self.dTxtSrcParams["TextSrcData"]:
+            raise Exception("Debug: both layer and text sources defined")
+        else:
+            pass
 
         if self.dLyrSrcParams["LayerSrcData"]:
             lGeoStructurData = pt_geoms_attrs(self.dLyrSrcParams["SrcLayer"],
                                               self.dLyrSrcParams["AttidudeFldNames"])
             lStructuralValues = parse_layer_data(self.dLyrSrcParams["InputDataTypes"],
                                                  lGeoStructurData)
-        elif self.dLyrSrcParams["TextSrcData"]:
-            pass
+        elif self.dTxtSrcParams["TextSrcData"]:
+            lStructuralValues = self.dTxtSrcParams["GestructuralData"]
         else:
             raise Exception("Unknown data type source")
 

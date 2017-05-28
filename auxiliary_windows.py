@@ -8,7 +8,7 @@ from qgis.gui import QgsColorButtonV2
 
 from .gis_utils.qgs_tools import loaded_point_layers
 
-ltInputDataTypes = ("planes", "axes", "planes & axes", "fault planes with rake")
+ltInputDataTypes = ("planes", "axes", "planes & axes", "fault planes with slickenline trend, plunge and movement sense", "fault planes with rake")
 ltInputPlaneAzimuthTypes = ["dip direction", "strike rhr"]
 ltInputPlaneDipTypes = ["dip angle"]
 ltInputAxisRakeTypes = ["rake - Aki & Richards, 1980"]
@@ -175,8 +175,11 @@ class StereoplotInputDlg(QDialog):
 
         lytInputValues.addWidget(QLabel("Input example for planes and axes: \n220,33,131,1\n145,59,57,9"), 2, 0, 1, 2)
         lytInputValues.addWidget(QLabel("Input example for faults with rake (Aki and Richards, 1980): \n220,33,122\n145,59,-3"), 3, 0, 1, 2)
+        lytInputValues.addWidget(
+            QLabel("Input example for faults with movement sense: \n220,33,222,32,N"), 4, 0, 1, 2)
+
         self.plntxtedInputValues = QPlainTextEdit()
-        lytInputValues.addWidget(self.plntxtedInputValues, 4, 0, 5, 2)
+        lytInputValues.addWidget(self.plntxtedInputValues, 5, 0, 5, 2)
 
         grpInputValues.setLayout(lytInputValues)
         lytTextInput.addWidget(grpInputValues)
