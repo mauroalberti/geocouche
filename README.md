@@ -50,8 +50,11 @@ The movement sense may assume two values: "N" for normal faults, and "R" for rev
 
 The other option to define faults is by defining a field storing the rake values.
 The rake should follow the Aki and Richards (1980) convention:
+
 0° < rakes < 180° -> reverse movements
+
 0° > rakes > -180° -> normal movements
+
 
 When using rakes, slickenline trend and plunge does not need to be explicited.
 Moreover, when defined, rake values take priority above any defined trend-plunge and movement sense values (if present). 
