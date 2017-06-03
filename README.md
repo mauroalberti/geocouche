@@ -1,6 +1,6 @@
 # geocouche
 geocouche is a GGIS plugin for processing geological meso-structures, based on the module apsg by Ondrej Lexa. 
-First stable release
+
 
 Currently, it can:
  - plot data from layers or texts in stereonets
@@ -35,9 +35,27 @@ It is possible to use input data from data stored in a point layer (Layer tab, F
 
 When using a point layer (already loaded in the TOC), plane and/or axis attitudes are defined via the fields storing their values (Fig. 3). If there is a selection, onmly selected features will be used.
 
+Depending if you want to plot planes, lines/axis of faults with slickenlines, you have to define accordingly the source fields for the various data type: for instance, for faults and slickenlines, you have to define plane dip direction and dip angle, and rake or (line trend, dip and movement sense).
+
+Remember that rake information takes precedence over (shadows) line trend/dip and optional movement sense, even if you want just to plot data as planes and lines, not just as faults with slickenlines. 
+
+
 ![alt text](/help/ims/geocouche_bl_input_layer.png "Input from point layer interface")
 
 *Fig. 3. Input from point layer interface.*
+
+To plot faults, the movement sense or the fault rake must be also defined. Since the current (incorporated) version of apsg do not explicitly support pure transcurrent faults, pure left- or right-lateral movements are not treated, in the present plugin version.
+
+The movement sense may assume two values: "N" for normal faults, and "R" for reverse faults.
+
+The other option to define faults is by defining a field storing the rake values.
+The rake should follow the Aki and Richards (1980) convention:
+0° < rakes < 180° -> reverse movements
+0° > rakes > -180° -> normal movements
+
+When using rakes, slickenline trend and plunge does not need to be explicited.
+Moreover, when defined, rake values take priority above any defined trend-plunge and movement sense values (if present). 
+
 
 **Input from text**
 
@@ -67,9 +85,9 @@ Settings are stored in memory and are reused in subsequent sessions.
 
 **Stereonet plotting**
 
-Plots can use a new or a pre-existing stereonet (provided it was not closed) (Fig. 6).
+Plots can use a new or a pre-existing stereonet plot. Previous plots can be erased by using the button Clear stereonet (see Fig. 2).
 
-Planes can be plotted as great circles or as plane normals, axes as poles or as normal great circles.
+Plane can be plotted as great circles or as plane normals, axes as poles or as normal great circles, faults with slickenlines as great circles with arrows or alternatvely as T-L diagrams (Fig. 6). 
 
 ![alt text](/help/ims/geocouche_bl_plot_choices.png "Stereonet plot interface")
 
