@@ -174,9 +174,10 @@ class StereoplotInputDlg(QDialog):
         lytInputValues.addWidget(self.cmbInputPlaneOrAzimType, 1, 1, 1, 1)
 
         lytInputValues.addWidget(QLabel("Input example for planes and axes: \n220,33,131,1\n145,59,57,9"), 2, 0, 1, 2)
-        lytInputValues.addWidget(QLabel("Input example for faults with rake (Aki and Richards, 1980): \n220,33,122\n145,59,-3"), 3, 0, 1, 2)
         lytInputValues.addWidget(
-            QLabel("Input example for faults with movement sense: \n220,33,222,32,N"), 4, 0, 1, 2)
+            QLabel("Input example for faults with movement sense: \n220,33,222,32,N"), 3, 0, 1, 2)
+        lytInputValues.addWidget(QLabel("Input example for faults with rake (Aki and Richards, 1980): \n220,33,122\n145,59,-3"), 4, 0, 1, 2)
+
 
         self.plntxtedInputValues = QPlainTextEdit()
         lytInputValues.addWidget(self.plntxtedInputValues, 5, 0, 5, 2)

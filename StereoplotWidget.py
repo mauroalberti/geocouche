@@ -285,11 +285,22 @@ class StereoplotWidget(QWidget):
             rows = text.split("\n")
             if len(rows) == 0:
                 return False, "No value available"
-            try:
-                geostructural_data = map(extract_values, rows)
+            else:
+                geostructural_data = []
+                for row in rows:
+                    if row:
+                        try:
+                            geostructural_data.append(extract_values(row))
+                        except Exception as e:
+                            return False, e.message
+                    else:
+                        continue
+
+            if geostructural_data:
                 return True, geostructural_data
-            except Exception as e:
-                return False, e.message
+            else:
+                return False, "No extracted data"
+
 
         llyrLoadedPointLayers = loaded_point_layers()
         dialog = StereoplotInputDlg(llyrLoadedPointLayers)
