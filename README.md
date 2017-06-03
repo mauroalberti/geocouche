@@ -116,7 +116,6 @@ It can be applied to determine the degree of misalignement between a reference (
 
 The user has to define the two fields storing the azimuth (dip direction or RHR strike) and the dip angle of each feature, the attitude of the reference plane, and the name of the output shapefile with a new field storing the calculated angle (Fig. 9).
 
-**Definition of parameters**
 
 ![alt text](/help/ims/angles_02.png "Definition of parameters for angle calculation")
 
