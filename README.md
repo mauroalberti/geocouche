@@ -1,5 +1,5 @@
 # geocouche
-geocouche is a GGIS plugin for processing geological meso-structures, based on the module apsg by Ondrej Lexa. 
+geocouche is a QGIS plugin for processing geological meso-structures, based on the module apsg by Ondrej Lexa. 
 
 
 Currently, it can:
