@@ -9,13 +9,17 @@
  ***************************************************************************/
 """
 
+from __future__ import absolute_import
+
+from builtins import object
 import os
 import webbrowser
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 
-import resources
+from . import resources
 
 from .StereoplotWidget import StereoplotWidget
 from .AnglesWidget import AnglesWidget
@@ -176,7 +180,7 @@ class Geocouche(object):
 
     def open_html_help(self):
 
-        webbrowser.open('{}/help/geocouche.html'.format(os.path.dirname(__file__)), new=True)
+        webbrowser.open('{}/help/help.html'.format(os.path.dirname(__file__)), new=True)
 
     def stereoplot_off(self):
 

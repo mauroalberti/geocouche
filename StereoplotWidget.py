@@ -8,8 +8,7 @@
 -------------------
 
     Begin                : 2015.04.18
-    Date                 : 2017.05.28
-    Copyright            : (C) 2015-2017 by Mauro Alberti
+    Copyright            : (C) 2015-2018 by Mauro Alberti
     Email                : alberti dot m65 at gmail dot com
 
  ***************************************************************************/
@@ -24,6 +23,9 @@
  ***************************************************************************/
 """
 
+
+from builtins import str
+from builtins import map
 
 from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
@@ -242,7 +244,7 @@ class StereoplotWidget(QWidget):
 
                 def parse_fault_mov_sense(raw_values):
 
-                    azim, dip_ang, lin_trend, lin_plunge = map(float, raw_values[:4])
+                    azim, dip_ang, lin_trend, lin_plunge = list(map(float, raw_values[:4]))
                     mov_sense = str(raw_values[4])
 
                     return azim, dip_ang, lin_trend, lin_plunge, mov_sense
@@ -250,15 +252,15 @@ class StereoplotWidget(QWidget):
                 raw_values = row.split(sep)
                 record_dict = dict()
                 if data_type == "planes":
-                    azim, dip_ang = map(float, raw_values)
+                    azim, dip_ang = list(map(float, raw_values))
                     record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
                     record_dict["pln_dipang"] = dip_ang
                 elif data_type == "axes":
-                    trend, plunge = map(float, raw_values)
+                    trend, plunge = list(map(float, raw_values))
                     record_dict["ln_tr"] = trend
                     record_dict["ln_pl"] = plunge
                 elif data_type == "planes & axes":
-                    azim, dip_ang, trend, plunge = map(float, raw_values)
+                    azim, dip_ang, trend, plunge = list(map(float, raw_values))
                     record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
                     record_dict["pln_dipang"] = dip_ang
                     record_dict["ln_tr"] = trend
@@ -271,7 +273,7 @@ class StereoplotWidget(QWidget):
                     record_dict["ln_pl"] = slick_pl
                     record_dict["ln_ms"] = mov_sense
                 elif data_type == "fault planes with rake":
-                    azim, dip_ang, rake = map(float, raw_values)
+                    azim, dip_ang, rake = list(map(float, raw_values))
                     record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
                     record_dict["pln_dipang"] = dip_ang
                     record_dict["ln_rk"] = rake
@@ -648,7 +650,7 @@ class StereoplotWidget(QWidget):
                 return
 
             try:
-                fig_outpath = unicode(dialog.qleFigureOutPath.text())
+                fig_outpath = str(dialog.qleFigureOutPath.text())
             except:
                 self.warn("Error in figure output path")
                 return

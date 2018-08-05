@@ -1,5 +1,7 @@
 from __future__ import division
 
+from builtins import object
+
 from math import sqrt, radians, sin, cos
 
 from ..gsf.geometry import Point

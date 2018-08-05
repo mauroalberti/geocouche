@@ -1,8 +1,10 @@
 
 from __future__ import division
 
-from PyQt4.QtCore import QSettings, QFileInfo
-from PyQt4.QtGui import QFileDialog
+from builtins import str
+
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 
 
 
@@ -34,7 +36,7 @@ def setLastUsedDir(plugin_lastDir_QSettStr, lastDir):
 
 def new_file_path(parent, show_msg, path, filter_text):
 
-    output_filename = QFileDialog.getSaveFileName(parent,
+    output_filename, __ = QFileDialog.getSaveFileName(parent,
                                                   show_msg,
                                                   path,
                                                   filter_text)
@@ -46,7 +48,7 @@ def new_file_path(parent, show_msg, path, filter_text):
 
 def old_file_path(parent, show_msg, filter_extension, filter_text):
 
-    input_filename = QFileDialog.getOpenFileName(parent,
+    input_filename, __ = QFileDialog.getOpenFileName(parent,
                                                  parent.tr(show_msg),
                                                  filter_extension,
                                                  filter_text)

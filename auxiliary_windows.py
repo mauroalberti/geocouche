@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from builtins import str
 from collections import OrderedDict
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from qgis.gui import QgsColorButtonV2
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
+
+from qgis.gui import QgsColorButton
 
 from .gis_utils.qgs_tools import loaded_point_layers
+
 
 ltInputDataTypes = ("planes", "axes", "planes & axes", "fault planes with slickenline trend, plunge and movement sense", "fault planes with rake")
 ltInputPlaneAzimuthTypes = ["dip direction", "strike rhr"]
@@ -260,7 +264,7 @@ class PlotStyleDlg(QDialog):
         # line color
 
         lytGreatCircles.addWidget(QLabel("Line color"), 0, 0, 1, 1)
-        self.btnLineColor = QgsColorButtonV2()
+        self.btnLineColor = QgsColorButton()
         line_color = self.dPlotStyles["line_color"]
         self.btnLineColor.setColor(QColor(line_color))
         lytGreatCircles.addWidget(self.btnLineColor, 0, 1, 1, 1)
@@ -312,7 +316,7 @@ class PlotStyleDlg(QDialog):
         # marker color
 
         lytPoles.addWidget(QLabel("Marker color"), 0, 0, 1, 1)
-        self.btnPointColor = QgsColorButtonV2()
+        self.btnPointColor = QgsColorButton()
         point_color = self.dPlotStyles["marker_color"]
         self.btnPointColor.setColor(QColor(point_color))
         lytPoles.addWidget(self.btnPointColor, 0, 1, 1, 1)
@@ -321,9 +325,9 @@ class PlotStyleDlg(QDialog):
 
         lytPoles.addWidget(QLabel("Marker style"), 0, 2, 1, 1)
         self.cmbPointStyle = QComboBox()
-        self.cmbPointStyle.insertItems(0, ltMarkerStyles.keys())
+        self.cmbPointStyle.insertItems(0, list(ltMarkerStyles.keys()))
         point_style = self.dPlotStyles["marker_style"]
-        point_style_ndx = ltMarkerStyles.keys().index(point_style) if point_style in ltMarkerStyles.keys() else 0
+        point_style_ndx = list(ltMarkerStyles.keys()).index(point_style) if point_style in list(ltMarkerStyles.keys()) else 0
         self.cmbPointStyle.setCurrentIndex(point_style_ndx)
         lytPoles.addWidget(self.cmbPointStyle, 0, 3, 1, 1)
         
@@ -495,7 +499,7 @@ class SaveFigureDlg(QDialog):
         # marker color
 
         lytPoles.addWidget(QLabel("Marker color"), 0, 0, 1, 1)
-        self.btnPointColor = QgsColorButtonV2()
+        self.btnPointColor = QgsColorButton()
         point_color = self.dPlotStyles["marker_color"]
         self.btnPointColor.setColor(QColor(point_color))
         lytPoles.addWidget(self.btnPointColor, 0, 1, 1, 1)
@@ -504,9 +508,9 @@ class SaveFigureDlg(QDialog):
 
         lytPoles.addWidget(QLabel("Marker style"), 0, 2, 1, 1)
         self.cmbPointStyle = QComboBox()
-        self.cmbPointStyle.insertItems(0, ltMarkerStyles.keys())
+        self.cmbPointStyle.insertItems(0, list(ltMarkerStyles.keys()))
         point_style = self.dPlotStyles["marker_style"]
-        point_style_ndx = ltMarkerStyles.keys().index(point_style) if point_style in ltMarkerStyles.keys() else 0
+        point_style_ndx = list(ltMarkerStyles.keys()).index(point_style) if point_style in list(ltMarkerStyles.keys()) else 0
         self.cmbPointStyle.setCurrentIndex(point_style_ndx)
         lytPoles.addWidget(self.cmbPointStyle, 0, 3, 1, 1)
 
@@ -709,7 +713,7 @@ class AnglesSrcPtLyrDlg(QDialog):
 
     def selectOutputVectorFile(self):
 
-        output_filename = QFileDialog.getSaveFileName(self,
+        output_filename, __ = QFileDialog.getSaveFileName(self,
                                                       self.tr("Save shapefile"),
                                                       "*.shp",
                                                       "shp (*.shp *.SHP)")

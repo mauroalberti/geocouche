@@ -6,8 +6,7 @@
 -------------------
 
     Begin                : 2015.04.18
-    Date                 : 2017.06.03
-    Copyright            : (C) 2015-2017 by Mauro Alberti
+    Copyright            : (C) 2015-2018 by Mauro Alberti
     Email                : alberti dot m65 at gmail dot com
         
  ***************************************************************************/
@@ -22,7 +21,9 @@
  ***************************************************************************/
 """
 
-from geocouche import Geocouche
+from __future__ import absolute_import
+
+from .geocouche import Geocouche
 
 
 def classFactory(iface):

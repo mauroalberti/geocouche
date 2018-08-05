@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+from builtins import object
+
 from math import sqrt, sin, cos, radians, acos, atan, atan2, degrees
 import numpy as np
 

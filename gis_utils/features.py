@@ -1,9 +1,13 @@
 
+from builtins import zip
+from builtins import range
+from builtins import object
 from math import sqrt, degrees
 import numpy as np
 
 from .qgs_tools import qgs_point_2d, project_qgs_point
 from ..gsf.geometry import Vect, GPlane, Point
+from functools import reduce
 
 MIN_2D_SEPARATION_THRESHOLD = 1e-10
 
@@ -337,7 +341,7 @@ class CartesianLine2DT(object):
 
     def as_segments2dt(self):
 
-        pts_pairs = zip(self.pts[:-1], self.pts[1:])
+        pts_pairs = list(zip(self.pts[:-1], self.pts[1:]))
 
         return [CartesianSegment2DT(pt_a, pt_b) for (pt_a, pt_b) in pts_pairs]
 
@@ -412,7 +416,7 @@ class CartesianMultiLine2DT(object):
     @property
     def num_points(self):
 
-        num_elements = map(lambda x: len(x.pts), self.lines)
+        num_elements = [len(x.pts) for x in self.lines]
         return reduce(lambda x, y: x + y, num_elements)
 
     def is_continuous(self):
@@ -636,11 +640,11 @@ class CartesianLine3DT(object):
 
     def zs(self):
 
-        return np.array(map(lambda pt: pt.p_z, self.pts))
+        return np.array([pt.p_z for pt in self.pts])
 
     def zs_not_nan(self):
 
-        return np.array(filter(lambda pt: not np.isnan(pt.p_z), self.pts))
+        return np.array([pt for pt in self.pts if not np.isnan(pt.p_z)])
 
     @property
     def z_min(self):

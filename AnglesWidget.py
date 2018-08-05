@@ -8,8 +8,7 @@
 -------------------
 
     Begin                : 2015.04.18
-    Date                 : 2017.03.21
-    Copyright            : (C) 2015-2017 by Mauro Alberti
+    Copyright            : (C) 2015-2018 by Mauro Alberti
     Email                : alberti dot m65 at gmail dot com
 
  ***************************************************************************/
@@ -24,8 +23,14 @@
  ***************************************************************************/
 """
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from builtins import str
+from builtins import zip
+from builtins import range
+
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
+
 from osgeo import ogr
 
 from .auxiliary_windows import AnglesSrcPtLyrDlg, tFieldUndefined
@@ -109,7 +114,7 @@ def parse_angles_geodata(input_data_types, structural_data):
         else:
             raise Exception("Invalid azimuth data type")
 
-        return map(lambda val: (val + offset) % 360.0, azimuths)
+        return [(val + offset) % 360.0 for val in azimuths]
 
     xy_vals = [(float(rec[0]), float(rec[1])) for rec in structural_data]
 
@@ -119,7 +124,7 @@ def parse_angles_geodata(input_data_types, structural_data):
             dipdir_vals = parse_azimuth_values(azimuths,
                                                 input_data_types["planar_az_type"])
             dipangle_vals = [float(rec[3]) for rec in structural_data]
-            plane_vals = zip(dipdir_vals, dipangle_vals)
+            plane_vals = list(zip(dipdir_vals, dipangle_vals))
         else:
             plane_vals = None
     except Exception as e:
@@ -227,7 +232,7 @@ class AnglesWidget(QWidget):
            
         try:  
             xy_coords, plane_orientations = parse_angles_geodata(input_data_types, structural_data)
-        except Exception, msg:
+        except Exception as msg:
             self.warn(str(msg))
             return
 
@@ -256,18 +261,18 @@ class AnglesWidget(QWidget):
 
         lFields = [field_dict["name"] for field_dict in fields_dict_list]
 
-        rngIds = range(1, len(angles) + 1)
-        x = map(lambda val: val[0], xy_coords)
-        y = map(lambda val: val[1], xy_coords)
-        plane_az = map(lambda val: val[0], plane_orientations)
-        plane_dip = map(lambda val: val[1], plane_orientations)
+        rngIds = list(range(1, len(angles) + 1))
+        x = [val[0] for val in xy_coords]
+        y = [val[1] for val in xy_coords]
+        plane_az = [val[0] for val in plane_orientations]
+        plane_dip = [val[1] for val in plane_orientations]
 
-        llRecValues = zip(rngIds,
+        llRecValues = list(zip(rngIds,
                           x,
                           y,
                           plane_az,
                           plane_dip,
-                          angles)
+                          angles))
 
         ogr_write_point_result(point_shapelayer, lFields, llRecValues, geom_type=ogr.wkbPoint)
 
