@@ -9,7 +9,7 @@ from qgis.PyQt.QtWidgets import *
 
 from qgis.gui import QgsColorButton
 
-from .gis_utils.qgs_tools import loaded_point_layers
+from .qgis_utils.qgs import loaded_point_layers
 
 
 ltInputDataTypes = ("planes", "axes", "planes & axes", "fault planes with slickenline trend, plunge and movement sense", "fault planes with rake")
@@ -149,10 +149,8 @@ class StereoplotInputDlg(QDialog):
 
         wdgtLayerInput.setLayout(lytLayerInput)
 
-        self.connect(btnOk, SIGNAL("clicked()"),
-                     self,  SLOT("accept()"))
-        self.connect(btnCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        btnOk.clicked.connect(self.accept)
+        btnCancel.clicked.connect(self.reject)
 
         return wdgtLayerInput
 
@@ -194,11 +192,8 @@ class StereoplotInputDlg(QDialog):
         btnOk = QPushButton("&OK")
         btnCancel = QPushButton("Cancel")
 
-        self.connect(btnOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-
-        self.connect(btnCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        btnOk.clicked.connect(self.accept)
+        btnCancel.clicked.connect(self.reject)
 
         lytButtons = QHBoxLayout()
         lytButtons.addStretch()
@@ -371,10 +366,8 @@ class PlotStyleDlg(QDialog):
 
         layout.addLayout(lytButtons)
 
-        self.connect(btnOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(btnCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        btnOk.clicked.connect(self.accept)
+        btnCancel.clicked.connect(self.reject)
 
         self.setLayout(layout)
 
@@ -662,10 +655,8 @@ class AnglesSrcPtLyrDlg(QDialog):
         btnOk = QPushButton("&OK")
         btnCancel = QPushButton("Cancel")
 
-        self.connect(btnOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(btnCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        btnOk.clicked.connect(self.accept)
+        btnCancel.clicked.connect(self.reject)
 
         lytButtons = QHBoxLayout()
         lytButtons.addStretch()

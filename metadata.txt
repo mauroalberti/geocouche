@@ -14,7 +14,7 @@ icon=./icons/stereoplot.png
 
 ; start of optional metadata
 changelog=
-  2.0.0 : - porting to QGIS 3
+  2.0.0 : - porting to QGIS 3 and integration of pygsf and other minor modules
   1.1.0 : - integration of module "gsf" (vers. 0.1.0) and related restructuration of "geosurf" in independent modules
   1.0.0 : - first stable release: calculate geological angles, plot great circles and poles in stereonet
   0.0.2 : - implemented plot styles; GUI modified; first stable Release Candidate

@@ -34,9 +34,10 @@ from qgis.PyQt.QtWidgets import *
 from osgeo import ogr
 
 from .auxiliary_windows import AnglesSrcPtLyrDlg, tFieldUndefined
-from .gsf.geometry import GPlane
-from .gis_utils.gdal_utils import shapefile_create, ogr_write_point_result
-from .gis_utils.qgs_tools import pt_geoms_attrs, loaded_point_layers
+from .pygsf.orientations.orientations import Plane as GPlane
+from .pygsf.libs_utils.gdal.ogr import shapefile_create, ogr_write_point_result
+
+from .qgis_utils.qgs import pt_geoms_attrs, loaded_point_layers
 
 
 def formally_valid_angles_params(structural_input_params):

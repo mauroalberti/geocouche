@@ -27,11 +27,12 @@
 from builtins import str
 from builtins import map
 
-from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
+#from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
 from .auxiliary_windows import *
-from .gsf.geometry import GPlane, GAxis
-from .gis_utils.qgs_tools import pt_geoms_attrs
+from .pygsf.orientations.orientations import Plane as GPlane, Axis as GAxis
+#from .gsf.geometry import GPlane, GAxis
+from .qgis_utils.qgs import pt_geoms_attrs
 from .mpl_utils.save_figure import FigureExportDlg
 from .fault_utils.utils import rake_to_apsg_movsense, movsense_to_apsg_movsense
 from .fault_utils.errors import RakeInputException
@@ -41,16 +42,18 @@ class StereoplotWidget(QWidget):
 
     window_closed = pyqtSignal()
 
-    def __init__(self, canvas, plugin_name):
+    def __init__(self, canvas, plugin_name, settings_name):
 
         super(StereoplotWidget, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, False)
         self.mapCanvas = canvas
+
         self.pluginName = plugin_name
+        self.settingsName = settings_name
 
         # settings stored for geocouche plugin
 
-        settings = QSettings("alberese", "geocouche")
+        settings = QSettings(self.settingsName, self.pluginName)
 
         # stored setting values for plot style
 
@@ -95,9 +98,6 @@ class StereoplotWidget(QWidget):
     def setup_gui(self):
 
         self.layout = QVBoxLayout()
-
-        self.stereonet = StereoNet()
-        self.layout.addWidget(self.stereonet.fig.canvas)
 
         self.pshDefineInput = QPushButton(self.tr("Input data"))
         self.pshDefineInput.clicked.connect(self.define_input)
@@ -676,7 +676,7 @@ class StereoplotWidget(QWidget):
 
     def update_style_settings(self):
 
-        settings = QSettings("alberese", "geocouche")
+        settings = QSettings(self.settingsName, self.pluginName)
         settings.setValue("StereoplotWidget/line_color", self.dPlotStyles["line_color"])
         settings.setValue("StereoplotWidget/line_style", self.dPlotStyles["line_style"])
         settings.setValue("StereoplotWidget/line_width", self.dPlotStyles["line_width"])
@@ -691,7 +691,7 @@ class StereoplotWidget(QWidget):
 
         # todo: define if this function it's reached or not, and how to change in negative case
 
-        settings = QSettings("alberese", "geocouche")
+        settings = QSettings(self.settingsName, self.pluginName)
         settings.setValue("StereoplotWidget/size", self.size())
         settings.setValue("StereoplotWidget/position", self.pos())
 
