@@ -15,9 +15,9 @@ def rake_to_apsg_movsense(rake):
 
 def movsense_to_apsg_movsense(str_val):
 
-    if str_val == "R":
+    if str_val.upper()[0] == "R":
         return 1
-    elif str_val == "N":
+    elif str_val.upper()[0] == "N":
         return -1
     else:
         raise RakeInputException("Input rake value not acceptable")

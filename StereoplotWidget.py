@@ -27,7 +27,7 @@
 from builtins import str
 from builtins import map
 
-#from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
+from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
 from .auxiliary_windows import *
 from .pygsf.orientations.orientations import Plane as GPlane, Axis as GAxis
@@ -98,6 +98,10 @@ class StereoplotWidget(QWidget):
     def setup_gui(self):
 
         self.layout = QVBoxLayout()
+
+        self.stereonet = StereoNet()
+
+        self.layout.addWidget(self.stereonet.fig.canvas)
 
         self.pshDefineInput = QPushButton(self.tr("Input data"))
         self.pshDefineInput.clicked.connect(self.define_input)
@@ -249,36 +253,39 @@ class StereoplotWidget(QWidget):
 
                     return azim, dip_ang, lin_trend, lin_plunge, mov_sense
 
-                raw_values = row.split(sep)
                 record_dict = dict()
-                if data_type == "planes":
-                    azim, dip_ang = list(map(float, raw_values))
-                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
-                    record_dict["pln_dipang"] = dip_ang
-                elif data_type == "axes":
-                    trend, plunge = list(map(float, raw_values))
-                    record_dict["ln_tr"] = trend
-                    record_dict["ln_pl"] = plunge
-                elif data_type == "planes & axes":
-                    azim, dip_ang, trend, plunge = list(map(float, raw_values))
-                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
-                    record_dict["pln_dipang"] = dip_ang
-                    record_dict["ln_tr"] = trend
-                    record_dict["ln_pl"] = plunge
-                elif data_type == "fault planes with slickenline trend, plunge and movement sense":
-                    azim, dip_ang, slick_tr, slick_pl, mov_sense = parse_fault_mov_sense(raw_values)
-                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
-                    record_dict["pln_dipang"] = dip_ang
-                    record_dict["ln_tr"] = slick_tr
-                    record_dict["ln_pl"] = slick_pl
-                    record_dict["ln_ms"] = mov_sense
-                elif data_type == "fault planes with rake":
-                    azim, dip_ang, rake = list(map(float, raw_values))
-                    record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
-                    record_dict["pln_dipang"] = dip_ang
-                    record_dict["ln_rk"] = rake
-                else:
-                    raise Exception("Unimplemented input type")
+                try:
+                    raw_values = row.split(sep)
+                    if data_type == "planes":
+                        azim, dip_ang = list(map(float, raw_values))
+                        record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                        record_dict["pln_dipang"] = dip_ang
+                    elif data_type == "axes":
+                        trend, plunge = list(map(float, raw_values))
+                        record_dict["ln_tr"] = trend
+                        record_dict["ln_pl"] = plunge
+                    elif data_type == "planes & axes":
+                        azim, dip_ang, trend, plunge = list(map(float, raw_values))
+                        record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                        record_dict["pln_dipang"] = dip_ang
+                        record_dict["ln_tr"] = trend
+                        record_dict["ln_pl"] = plunge
+                    elif data_type == "fault planes with slickenline trend, plunge and movement sense":
+                        azim, dip_ang, slick_tr, slick_pl, mov_sense = parse_fault_mov_sense(raw_values)
+                        record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                        record_dict["pln_dipang"] = dip_ang
+                        record_dict["ln_tr"] = slick_tr
+                        record_dict["ln_pl"] = slick_pl
+                        record_dict["ln_ms"] = mov_sense
+                    elif data_type == "fault planes with rake":
+                        azim, dip_ang, rake = list(map(float, raw_values))
+                        record_dict["pln_dipdir"] = parse_plane_dirdir(azim)
+                        record_dict["pln_dipang"] = dip_ang
+                        record_dict["ln_rk"] = rake
+                    else:
+                        raise Exception("Unimplemented input type")
+                except:
+                    self.warn("Check input values")
 
                 return record_dict
 
@@ -291,12 +298,11 @@ class StereoplotWidget(QWidget):
                 geostructural_data = []
                 for row in rows:
                     if row:
-                        try:
-                            geostructural_data.append(extract_values(row))
-                        except Exception as e:
-                            return False, e.message
-                    else:
-                        continue
+                        data_row = extract_values(row)
+                        if not data_row:
+                            return False, "Error with input"
+                        else:
+                            geostructural_data.append(data_row)
 
             if geostructural_data:
                 return True, geostructural_data
@@ -455,7 +461,7 @@ class StereoplotWidget(QWidget):
 
             def downaxis_from_rake(dipdir, dipang, rk):
 
-                return GPlane(dipdir, dipang).rake_to_gv(float(rk)).downward.tp
+                return GPlane(dipdir, dipang).rakeToDirect(float(rk)).downward().d
 
             def get_plane_data(struct_vals):
 
@@ -548,7 +554,7 @@ class StereoplotWidget(QWidget):
                                                  color=line_color,
                                                  alpha=line_alpha)
                         elif plot_setts["tPlotPlanesFormat"] == "normal axes":
-                            line_rec = GPlane(*plane).normal.downward.tp
+                            line_rec = GPlane(*plane).normDirect().d
                             l = aLin(*line_rec)
                             self.stereonet.line(l,
                                                 marker=marker_style,

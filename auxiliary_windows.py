@@ -425,10 +425,9 @@ class PlotStereonetDlg(QDialog):
 
         btnOk = QPushButton("&OK")
         btnCancel = QPushButton("Cancel")
-        self.connect(btnOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(btnCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+
+        btnOk.clicked.connect(self.accept)
+        btnCancel.clicked.connect(self.reject)
 
         lytButtons = QHBoxLayout()
         lytButtons.addStretch()
@@ -547,10 +546,8 @@ class SaveFigureDlg(QDialog):
 
         layout.addLayout(lytButtons)
 
-        self.connect(btnOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(btnCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        btnOk.clicked.connect(self.accept)
+        btnCancel.clicked.connect(self.reject)
 
         self.setLayout(layout)
 

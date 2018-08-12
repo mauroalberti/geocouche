@@ -114,8 +114,9 @@ def shapefile_create(path, geom_type, fields_dict_list, crs=None):
     else:
         outShapelayer = outShapefile.CreateLayer("layer", geom_type=geom_type)
 
-    map(lambda field_def_params: outShapelayer.CreateField(shapefile_create_def_field(field_def_params)),
-        fields_dict_list)
+    for field_def_params in fields_dict_list:
+        field_def = shapefile_create_def_field(field_def_params)
+        outShapelayer.CreateField(field_def)
 
     return outShapefile, outShapelayer
 

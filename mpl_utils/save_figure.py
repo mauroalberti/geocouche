@@ -156,10 +156,8 @@ class FigureExportDetailedDlg(QDialog):
 
         self.setLayout(qlyMainLayout)
 
-        self.connect(qpbOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(qpbCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        qpbOk.clicked.connect(self.accept)
+        qpbCancel.clicked.connect(self.reject)
 
         self.setWindowTitle("Export figure")
 
@@ -303,10 +301,8 @@ class FigureExportDlg(QDialog):
 
         self.setLayout(qlyMainLayout)
 
-        self.connect(qpbOk, SIGNAL("clicked()"),
-                     self, SLOT("accept()"))
-        self.connect(qpbCancel, SIGNAL("clicked()"),
-                     self, SLOT("reject()"))
+        qpbOk.clicked.connect(self.accept)
+        qpbCancel.clicked.connect(self.reject)
 
         self.setWindowTitle("Export figure")
 

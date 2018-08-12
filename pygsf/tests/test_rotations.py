@@ -19,11 +19,8 @@ class TestFocalMechamismRotations(unittest.TestCase):
         rot_axes = map(sols2rotaxis, k91_rot_sols)
         rot_fm = k91_ss_PTBaxes
 
-        print("\nTest forward focal mechanism rotation")
         for rot_axis in rot_axes:
             calc_rot_fm = focmech_rotate(src_fm, rot_axis)
-            print("calculated rotated fm: {}".format(calc_rot_fm))
-            print("expected rotated fm: {}".format(rot_fm))
             assert calc_rot_fm.almostEqual(rot_fm)
 
     def test_inversion_kagan_examples_1(self):

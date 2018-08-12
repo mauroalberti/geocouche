@@ -256,9 +256,10 @@ class AnglesWidget(QWidget):
                             dict(name='dip_angle', ogr_type=ogr.OFTReal),
                             dict(name='angle', ogr_type=ogr.OFTReal)]
 
-        point_shapefile, point_shapelayer = shapefile_create(self.anglesAnalysisParams["output_shapefile_path"],
-                                                             ogr.wkbPoint,
-                                                             fields_dict_list)
+        point_shapefile, point_shapelayer = shapefile_create(
+            self.anglesAnalysisParams["output_shapefile_path"],
+            ogr.wkbPoint,
+            fields_dict_list)
 
         lFields = [field_dict["name"] for field_dict in fields_dict_list]
 

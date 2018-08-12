@@ -20,17 +20,18 @@
 			<br />
 			<br />Currently, it can:
 			<ul>
-			        <li>plot data in stereonets - from point layer or text input</li>
+				<li>plot data in stereonets - from point layer or text input</li>
 				<li>calculate the angles between planes stored in a layer and a reference plane</li>
 							
 			</ul>
 			These two tools are available in the QGIS plugin interface (Fig. 1).
-			
+			<br /><br />
 			<figure>
 				<img src="ims/screenshot_01.png" alt="plugin QGIS interface">
+				<br />
 				<figcaption>Fig. 1. <b>geocouche</b> interface.</figcaption>
 			</figure>	
-			
+			<br /><br />
 			The two tools are:
 			<ul>
 			        <li>Geological stereonets</li>	
@@ -39,20 +40,19 @@
 			</ul>	
 			
 		</div>
-		
-
 
 		<h2>Geological stereonets</h2>	
 	
 		With this module it is possible to create stereonets representing geological plane and axis/slickenline attitudes
 		as great circles, poles, faults with slickenlines and T-L diagrams.
 		Its interface is represented in Fig. 2.
-
+		<br /><br />
 		<figure>
 			<img src="ims/geocouche_bl_total.png" alt="Geological stereonets">
+			<br />
 			<figcaption>Fig. 2. Stereonet interface.</figcaption>
 		</figure>
-		
+		<br /><br />
 		To plot data in a stereoplot, there are three main steps to follow:
 		<ul>
 			<li>Choice of input data</li>
@@ -79,13 +79,14 @@
 		<br />
 		Remember that rake information takes precedence over (shadows) line trend/dip and optional movement sense, even if you want just to plot
 		data as planes and lines, not just as faults with slickenlines.
-		<br />
 
-				
+		<br /><br />
 		<figure>
 			<img src="ims/geocouche_bl_input_layer.png" alt="Input from point layer">
+			<br />
 			<figcaption>Fig. 3. Interface for input from point layer interface.</figcaption>
 		</figure>	
+		<br /><br />
 
 		To plot faults, the movement sense or the fault rake must be also defined.
 		Since the current (incorporated) version of <b>apsg</b> do not explicitly support <u>pure</u> transcurrent faults,
@@ -117,67 +118,70 @@
 		</ul>		
 		Another option to take care of for plane data, is whether orientations are expressed
 		using dip direction or RHR strike.
-		
+		<br /><br />
 		<figure>
 			<img src="ims/geocouche_bl_input_text.png" alt="Input from text">
+			<br />
 			<figcaption>Fig. 4. Input from text interface.</figcaption>
 		</figure>	
-
+		<br /><br />
 		<h3>Plot style</h3>
 		
 		Styles can be defined for both great circles and poles: color, width/size, line/marker style, and transparency (Fig. 5).
 		<br />Settings are stored in memory and resused in subsequent sessions.
-		
+		<br /><br />
 		<figure>
 			<img src="ims/geocouche_bl_plot_style.png" alt="Plot style">
+			<br />
 			<figcaption>Fig. 5. Plot style interface.</figcaption>
 		</figure>
-
+		<br /><br />
 		<h3>Stereonet plotting</h3>
 			
 		Plots can use a new or a pre-existing stereonet plot. Previous plots can be erased by using the button <b>Clear stereonet</b>  (see Fig. 2).
 		<br />Plane can be plotted as great circles or as plane normals, axes as poles or as normal great circles, faults with slickenlines
 		as great circles with arrows or alternatvely as T-L diagrams (Fig. 6).
-		
+		<br /><br />
 		<figure>
 			<img src="ims/geocouche_bl_plot_choices.png" alt="Stereonet plotting">
+			<br />
 			<figcaption>Fig. 6. Stereonet plot interface.</figcaption>
 		</figure>
-
+		<br /><br />
 		An example of stereonet is shown in Fig. 7.
-		
+		<br /><br />
 		<figure>
 			<img src="ims/stereonet_06.png" alt="Stereonet interface">
+			<br />
 			<figcaption>Fig. 7. Stereonet example.</figcaption>
 		</figure>
-
-
+		<br /><br />
 
 		<h2>Geological angles</h2>	
 	
 		This tool allows to calculate the angles (as degrees) between a reference plane and the (eventually selected) features in a point layer (Fig. 8).
 		<br />It can be applied to determine the degree of misalignement between a reference (for instance, regional) measure and local geological measures.
-		
+		<br /><br />
 		<figure>
 			<img src="ims/angles_01.png" alt="Calculate Angles interface">
+			<br />
 			<figcaption>Fig. 8. Geological angles calculation interface.</figcaption>
 		</figure>		
-		
+		<br /><br />
 		The user has to define the two fields storing the azimuth (dip direction or RHR strike) and the dip angle of each feature,
 		the attitude of the reference plane, and the name of the output shapefile with a new field storing the calculated angle (Fig. 9).
-		
+		<br /><br />
 		<figure>
 			<img src="ims/angles_02.png" alt="Definition of parameters">
+			<br />
 			<figcaption>Fig. 9. Definition of parameters for angle calculation.</figcaption>
 		</figure>
-
-
-		
 		<br /><br />
+
 		<div style="font-size: 85%; font-style: italic;">
 		-----
 		<br /><br />
-		Doc version 2017-06-03, by Mauro Alberti - <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a>
+		Doc version 2018-08-12, by Mauro Alberti - <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a>
 		</div>
 
 		<br /><br />

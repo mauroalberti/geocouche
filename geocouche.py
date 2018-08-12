@@ -118,7 +118,8 @@ class Geocouche(object):
 
     def open_html_help(self):
 
-        webbrowser.open('{}/help/help.html'.format(os.path.dirname(__file__)), new=True)
+        dialog = HelpDialog()
+        dialog.exec_()
 
     def stereoplot_off(self):
 
@@ -141,4 +142,25 @@ class Geocouche(object):
         self.interface.removePluginMenu(self.tPluginName, self.actStereoplot)
         self.interface.removePluginMenu(self.tPluginName, self.actAngles)
         self.interface.removePluginMenu(self.tPluginName, self.actHelp)
+
+
+class HelpDialog(QDialog):
+
+    def __init__(self, parent=None):
+        super(HelpDialog, self).__init__(parent)
+
+        layout = QVBoxLayout()
+
+        # About section
+
+        helpTextBrwsr = QTextBrowser(self)
+
+        helpTextBrwsr.setSource(QUrl('{}/help/help.html'.format(os.path.dirname(__file__))))
+        helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
+
+        layout.addWidget(helpTextBrwsr)
+
+        self.setLayout(layout)
+
+        self.setWindowTitle("{} Help".format(_plugin_name_))
 
