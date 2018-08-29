@@ -27,6 +27,8 @@ from builtins import str
 from builtins import zip
 from builtins import range
 
+import os
+
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
@@ -155,7 +157,11 @@ class AnglesWidget(QWidget):
         
         self.layout.addWidget(self.setup_inputdata())
         self.layout.addWidget(self.setup_processing())
-                                                           
+
+        self.pshHelp = QPushButton(self.tr("Help"))
+        self.pshHelp.clicked.connect(self.open_help)
+        self.layout.addWidget(self.pshHelp)
+
         self.setLayout(self.layout)
         self.setWindowTitle("Angles")
         self.adjustSize()
@@ -296,3 +302,32 @@ class AnglesWidget(QWidget):
         settings.setValue("AnglesWidget/position", self.pos())
 
         self.sgnWindowClosed.emit()
+
+    def open_help(self):
+
+        dialog = HelpDialog(self.pluginName)
+        dialog.exec_()
+
+
+class HelpDialog(QDialog):
+
+    def __init__(self, plugin_name, parent=None):
+        super(HelpDialog, self).__init__(parent)
+
+        layout = QVBoxLayout()
+
+        # About section
+
+        helpTextBrwsr = QTextBrowser(self)
+
+        url_path = "file:///{}/help/help_geological_angles.html".format(os.path.dirname(__file__))
+        helpTextBrwsr.setSource(QUrl(url_path))
+        helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
+
+        layout.addWidget(helpTextBrwsr)
+
+        self.setLayout(layout)
+
+        self.adjustSize()
+
+        self.setWindowTitle("{} - Geological Angles Help".format(plugin_name))

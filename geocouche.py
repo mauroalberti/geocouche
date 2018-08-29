@@ -25,7 +25,7 @@ from .qt_utils.utils import *
 
 from .StereoplotWidget import StereoplotWidget
 from .AnglesWidget import AnglesWidget
-
+from .about_dialog import about_Dialog
 
 _plugin_name_ = "geocouche"
 _settings_name_ = "alberese"
@@ -68,18 +68,18 @@ class Geocouche(object):
             self.actAngles)
         self.actions.append(self.actAngles)
 
-        self.actHelp = create_action(
-            icon_path=':/plugins/geocouche/icons/help.ico',
-            text='Help',
-            callback=self.open_html_help,
+        self.actAbout = create_action(
+            icon_path=':/plugins/geocouche/icons/about.ico',
+            text='About',
+            callback=self.run_about,
             parent=self.interface.mainWindow())
         self.interface.addPluginToMenu(
             self.tPluginName,
-            self.actHelp)
-        self.actions.append(self.actHelp)
+            self.actAbout)
+        self.actions.append(self.actAbout)
 
     def open_stereoplot_widget(self):
-        
+
         if self.bStereoplotWidgetOpen:
             self.warn("Geologic stereonets already open")
             return
@@ -116,10 +116,11 @@ class Geocouche(object):
 
         self.bAnglesWidgetOpen = True
 
-    def open_html_help(self):
+    def run_about(self):
 
-        dialog = HelpDialog()
-        dialog.exec_()
+        about_dlg = about_Dialog()
+        about_dlg.show()
+        about_dlg.exec_()
 
     def stereoplot_off(self):
 
@@ -141,26 +142,6 @@ class Geocouche(object):
 
         self.interface.removePluginMenu(self.tPluginName, self.actStereoplot)
         self.interface.removePluginMenu(self.tPluginName, self.actAngles)
-        self.interface.removePluginMenu(self.tPluginName, self.actHelp)
+        self.interface.removePluginMenu(self.tPluginName, self.actAbout)
 
-
-class HelpDialog(QDialog):
-
-    def __init__(self, parent=None):
-        super(HelpDialog, self).__init__(parent)
-
-        layout = QVBoxLayout()
-
-        # About section
-
-        helpTextBrwsr = QTextBrowser(self)
-
-        helpTextBrwsr.setSource(QUrl('{}/help/help.html'.format(os.path.dirname(__file__))))
-        helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
-
-        layout.addWidget(helpTextBrwsr)
-
-        self.setLayout(layout)
-
-        self.setWindowTitle("{} Help".format(_plugin_name_))
 

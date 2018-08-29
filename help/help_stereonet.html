@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>geocouche</title>
+		<style>
+			body { padding: 10px; }		
+			figure { padding: 10px; }	
+			img { padding: 15px; }
+			figcaption {  font-style: italic;
+			              font-size: 90%;}
+		</style>
+	<head>
+	
+	<body>
+		<h1>Geological stereonets</h1>
+	
+		This tool allows to create stereonets representing geological plane and axis/slickenline attitudes
+		as great circles, poles, faults with slickenlines and T-L diagrams.
+		Its interface is represented in Fig. 2.
+		<br /><br />
+		<figure>
+			<img src="ims/geocouche_bl_total.png" alt="Geological stereonets">
+			<br />
+			<figcaption>Fig. 2. Stereonet interface.</figcaption>
+		</figure>
+		<br /><br />
+		To plot data in a stereoplot, there are three main steps to follow:
+		<ul>
+			<li>Choice of input data</li>
+			<li>Definition of plot style</li>
+			<li>Data plotting</li>
+		</ul>
+
+		
+		<h3>Choice of input data</h3>
+		
+		It is possible to use input data from data stored in a point layer (<i>Layer</i> tab, Fig. 3)
+		or to use text input (<i>Text</i> tab, Fig. 4).
+		
+		<h4>Input from point layer</h4>
+		
+		When using a point layer already loaded in the TOC, plane and/or axis attitudes
+		are defined via the fields storing their values (Fig. 3). If there is a selection, only selected features will be used.
+		<br />
+		<br />
+		Depending if you want to plot planes, lines/axis of faults with slickenlines, you have to define accordingly the source
+		fields for the various data type: for instance, for faults and slickenlines, you have to define plane dip direction and
+		dip angle, and rake or (line trend, dip and movement sense).
+		<br />
+		<br />
+		Remember that rake information takes precedence over (shadows) line trend/dip and optional movement sense, even if you want just to plot
+		data as planes and lines, not just as faults with slickenlines.
+
+		<br /><br />
+		<figure>
+			<img src="ims/geocouche_bl_input_layer.png" alt="Input from point layer">
+			<br />
+			<figcaption>Fig. 3. Interface for input from point layer interface.</figcaption>
+		</figure>	
+		<br /><br />
+
+		To plot faults, the movement sense or the fault rake must be also defined.
+		Since the current (incorporated) version of <b>apsg</b> do not explicitly support <u>pure</u> transcurrent faults,
+		pure left- or right-lateral movements are not treated, in the present plugin version.
+		<br />
+		<br />
+		The movement sense may assume two values: "N" for normal faults, and "R" for reverse faults.
+		<br />
+
+		<br />
+		The other option to define faults is by defining a field storing the rake values.
+		<br />The rake should follow the Aki and Richards (1980) convention:
+		<br />0&deg; < rakes < 180&deg; -> reverse movements
+		<br />0&deg; > rakes > -180&deg; -> normal movements
+		<br />  
+		<br />When using rakes, slickenline trend and plunge does not need to be explicited.
+		<br />Moreover, when defined, rake values <u> take priority </u> above any defined trend-plunge and movement sense values (if present).
+		  
+
+		<h4>Input from text</h4>
+		
+		The input can be inserted into a text window (Fig. 4), defining if data consist of:
+		<ul>
+			<li>planes</li>
+			<li>axes</li>
+			<li>planes and axes</li>
+			<li>fault planes with slickenline trend, plunge and movement sense</li>
+			<li>fault planes with rake</li>
+		</ul>		
+		Another option to take care of for plane data, is whether orientations are expressed
+		using dip direction or RHR strike.
+		<br /><br />
+		<figure>
+			<img src="ims/geocouche_bl_input_text.png" alt="Input from text">
+			<br />
+			<figcaption>Fig. 4. Input from text interface.</figcaption>
+		</figure>	
+		<br /><br />
+		<h3>Plot style</h3>
+		
+		Styles can be defined for both great circles and poles: color, width/size, line/marker style, and transparency (Fig. 5).
+		<br />Settings are stored in memory and resused in subsequent sessions.
+		<br /><br />
+		<figure>
+			<img src="ims/geocouche_bl_plot_style.png" alt="Plot style">
+			<br />
+			<figcaption>Fig. 5. Plot style interface.</figcaption>
+		</figure>
+		<br /><br />
+		<h3>Stereonet plotting</h3>
+			
+		Plots can use a new or a pre-existing stereonet plot. Previous plots can be erased by using the button <b>Clear stereonet</b>  (see Fig. 2).
+		<br />Plane can be plotted as great circles or as plane normals, axes as poles or as normal great circles, faults with slickenlines
+		as great circles with arrows or alternatvely as T-L diagrams (Fig. 6).
+		<br /><br />
+		<figure>
+			<img src="ims/geocouche_bl_plot_choices.png" alt="Stereonet plotting">
+			<br />
+			<figcaption>Fig. 6. Stereonet plot interface.</figcaption>
+		</figure>
+		<br /><br />
+		An example of stereonet is shown in Fig. 7.
+		<br /><br />
+		<figure>
+			<img src="ims/stereonet_06.png" alt="Stereonet interface">
+			<br />
+			<figcaption>Fig. 7. Stereonet example.</figcaption>
+		</figure>
+		<br /><br />
+
+		<div style="font-size: 85%; font-style: italic;">
+		-----
+		<br /><br />
+		Doc version 2018-08-29, by Mauro Alberti - <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a>
+		</div>
+
+		<br /><br />
+		
+	<body>
+
+</html>

@@ -23,9 +23,12 @@
  ***************************************************************************/
 """
 
+import os
 
 from builtins import str
 from builtins import map
+
+from qgis.utils import showPluginHelp
 
 from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
@@ -123,9 +126,18 @@ class StereoplotWidget(QWidget):
         self.pshSaveFigure.clicked.connect(self.save_figure)
         self.layout.addWidget(self.pshSaveFigure)
 
+        self.pshHelp = QPushButton(self.tr("Help"))
+        self.pshHelp.clicked.connect(self.open_help)
+        self.layout.addWidget(self.pshHelp)
+
         self.setLayout(self.layout)
         self.setWindowTitle("Stereonet")
         self.adjustSize()
+
+    def open_help(self):
+
+        dialog = HelpDialog(self.pluginName)
+        dialog.exec_()
 
     def define_input(self):
 
@@ -702,6 +714,32 @@ class StereoplotWidget(QWidget):
         settings.setValue("StereoplotWidget/position", self.pos())
 
         self.window_closed.emit()
+
+
+class HelpDialog(QDialog):
+
+    def __init__(self, plugin_name, parent=None):
+        super(HelpDialog, self).__init__(parent)
+
+        layout = QVBoxLayout()
+
+        # About section
+
+        helpTextBrwsr = QTextBrowser(self)
+
+        url_path = "file:///{}/help/help_stereonet.html".format(os.path.dirname(__file__))
+        helpTextBrwsr.setSource(QUrl(url_path))
+        helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
+
+        layout.addWidget(helpTextBrwsr)
+
+        self.setLayout(layout)
+
+        self.adjustSize()
+
+        self.setWindowTitle("{} - Stereonet Help".format(plugin_name))
+
+
 
 
 

@@ -2,6 +2,7 @@
     <qresource prefix="/plugins/geocouche" >
         <file>icons/stereoplot.png</file>
         <file>icons/angle.svg</file>
+        <file>icons/about.png</file>
 		<file>icons/help.ico</file>
     </qresource>
 </RCC>
