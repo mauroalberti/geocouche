@@ -131,7 +131,7 @@ def parse_angles_geodata(input_data_types, structural_data):
         else:
             plane_vals = None
     except Exception as e:
-        raise Exception("Error in planar data parsing: {}".format(e.message))
+        raise Exception("Error in planar data parsing: {}".format(e))
 
     return xy_vals, plane_vals
 
@@ -157,13 +157,10 @@ class AnglesWidget(QWidget):
         
         self.layout.addWidget(self.setup_inputdata())
         self.layout.addWidget(self.setup_processing())
-
-        self.pshHelp = QPushButton(self.tr("Help"))
-        self.pshHelp.clicked.connect(self.open_help)
-        self.layout.addWidget(self.pshHelp)
+        self.layout.addWidget(self.setup_help())
 
         self.setLayout(self.layout)
-        self.setWindowTitle("Angles")
+        self.setWindowTitle("{} - geological angles".format(self.pluginName))
         self.adjustSize()
 
     def setup_inputdata(self):
@@ -193,6 +190,20 @@ class AnglesWidget(QWidget):
         grpProcessing.setLayout(layout)
         
         return grpProcessing
+
+    def setup_help(self):
+
+        group_box = QGroupBox("Help")
+
+        layout = QVBoxLayout()
+
+        self.pshHelp = QPushButton(self.tr("Open help"))
+        self.pshHelp.clicked.connect(self.open_help)
+        layout.addWidget(self.pshHelp)
+
+        group_box.setLayout(layout)
+
+        return group_box
 
     def user_define_angles_inparams(self):
 
@@ -323,11 +334,10 @@ class HelpDialog(QDialog):
         url_path = "file:///{}/help/help_geological_angles.html".format(os.path.dirname(__file__))
         helpTextBrwsr.setSource(QUrl(url_path))
         helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
+        helpTextBrwsr.setMinimumSize(700, 800)
 
         layout.addWidget(helpTextBrwsr)
 
         self.setLayout(layout)
 
-        self.adjustSize()
-
-        self.setWindowTitle("{} - Geological Angles Help".format(plugin_name))
+        self.setWindowTitle("{} - geological angles Help".format(plugin_name))

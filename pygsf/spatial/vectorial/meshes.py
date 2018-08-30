@@ -197,11 +197,11 @@ class AnalyticGeosurface(object):
         geog_scale_matr = geographic_scale_matrix(a_range, b_range, area_height, area_width)
         geogr_rot_matrix = geographic_rotation_matrix(area_rot_ang_deg)
 
-        self.geographic_transformation_matrix = np.dot(geogr_rot_matrix, geog_scale_matr)
+        self.geographic_transformation_matrix = dot(geogr_rot_matrix, geog_scale_matr)
 
         self.geographic_offset_matrix = geographic_offset(self.geographic_transformation_matrix,
-                                                          np.array([a_min, b_min, 0.0]),
-                                                          np.array([geog_x_min, geog_y_min, 0.0]))
+                                                          array([a_min, b_min, 0.0]),
+                                                          array([geog_x_min, geog_y_min, 0.0]))
 
         # apply total transformations to grid points
         self.deformations = deformMatrices(self.deformational_params)
@@ -295,13 +295,13 @@ class AnalyticGeosurface(object):
         :return:
         """
 
-        pt = np.dot(self.geographic_transformation_matrix, np.array([x, y, z])) + self.geographic_offset_matrix
+        pt = dot(self.geographic_transformation_matrix, array([x, y, z])) + self.geographic_offset_matrix
         for deformation in self.deformations:
             if deformation['increment'] == 'additive':
                 pt = pt + deformation['matrix']
             elif deformation['increment'] == 'multiplicative':
                 pt = pt - deformation['shift_pt']
-                pt = np.dot(deformation['matrix'], pt)
+                pt = dot(deformation['matrix'], pt)
                 pt = pt + deformation['shift_pt']
         return pt
 
@@ -325,7 +325,7 @@ def geographic_scale_matrix(a_range, b_range, grid_height, grid_width):
     sy = grid_height / b_range
     sz = 1
 
-    return np.array([(sx, 0.0, 0.0), (0.0, sy, 0.0), (0.0, 0.0, sz)])
+    return array([(sx, 0.0, 0.0), (0.0, sy, 0.0), (0.0, 0.0, sz)])
 
 
 def geographic_rotation_matrix(grid_rot_angle_degr):
@@ -339,7 +339,7 @@ def geographic_rotation_matrix(grid_rot_angle_degr):
     sin_rot_angle = sin(grid_rot_angle_rad)
     cos_rot_angle = cos(grid_rot_angle_rad)
 
-    return np.array([(cos_rot_angle, -sin_rot_angle, 0.0),
+    return array([(cos_rot_angle, -sin_rot_angle, 0.0),
                      (sin_rot_angle, cos_rot_angle, 0.0),
                      (0.0, 0.0, 1.0)])
 
@@ -353,7 +353,7 @@ def geographic_offset(transformation_matrix, llc_point_matr, llc_point_geog):
     :return:
     """
 
-    return llc_point_geog - np.dot(transformation_matrix, llc_point_matr)
+    return llc_point_geog - dot(transformation_matrix, llc_point_matr)
 
 
 def geosurface_export_vtk(output_filepath, geodata):
@@ -367,11 +367,11 @@ def geosurface_export_vtk(output_filepath, geodata):
     geosurface_XYZ, grid_dims = geodata
     X, Y, Z = geosurface_XYZ
 
-    X_arr = np.array(X, dtype=float)
-    Y_arr = np.array(Y, dtype=float)
-    Z_arr = np.array(Z, dtype=float)
+    X_arr = array(X, dtype=float)
+    Y_arr = array(Y, dtype=float)
+    Z_arr = array(Z, dtype=float)
 
-    n_points = np.size(X_arr)
+    n_points = size(X_arr)
 
     n_rows, n_cols = grid_dims
 
@@ -398,6 +398,8 @@ def geosurface_export_vtk(output_filepath, geodata):
             triangle_strip_string += "\n"
             outfile.write(triangle_strip_string)
 
+    return True
+
 
 def geosurface_export_grass(output_filepath, geodata):
     """
@@ -411,9 +413,9 @@ def geosurface_export_grass(output_filepath, geodata):
     geosurface_XYZ, grid_dims = geodata
     X, Y, Z = geosurface_XYZ
 
-    X_arr = np.array(X, dtype=float)
-    Y_arr = np.array(Y, dtype=float)
-    Z_arr = np.array(Z, dtype=float)
+    X_arr = array(X, dtype=float)
+    Y_arr = array(Y, dtype=float)
+    Z_arr = array(Z, dtype=float)
 
     n_rows, n_cols = grid_dims
 
@@ -443,6 +445,8 @@ def geosurface_export_grass(output_filepath, geodata):
                 outfile.write(' %.4f %.4f %.4f\n' % (
                     X_arr[forward_line_point_ndx], Y_arr[forward_line_point_ndx], Z_arr[forward_line_point_ndx]))
 
+    return True
+
 
 def geosurface_export_esri_generate(output_filepath, geodata):
     """
@@ -457,9 +461,9 @@ def geosurface_export_esri_generate(output_filepath, geodata):
     geosurface_XYZ, grid_dims = geodata
     X, Y, Z = geosurface_XYZ
 
-    X_arr = np.array(X, dtype=float)
-    Y_arr = np.array(Y, dtype=float)
-    Z_arr = np.array(Z, dtype=float)
+    X_arr = array(X, dtype=float)
+    Y_arr = array(Y, dtype=float)
+    Z_arr = array(Z, dtype=float)
 
     n_rows, n_cols = grid_dims
 
@@ -495,6 +499,8 @@ def geosurface_export_esri_generate(output_filepath, geodata):
                 outfile.write('END\n')
         outfile.write('END\n')
 
+    return True
+
 
 def geosurface_save_gas(output_filepath, geodata):
     """
@@ -506,6 +512,24 @@ def geosurface_save_gas(output_filepath, geodata):
 
     with open(output_filepath, 'w') as outfile:
         json.dump(geodata, outfile)
+
+    return True
+
+
+def geosurface_export_xyz( xyz_file_path, geodata, ):
+
+    geosurface_XYZ, _ = geodata
+    X, Y, Z = geosurface_XYZ
+    assert len(X) == len(Y)
+    assert len(X) == len(Z)
+
+    rec_values_list2 = zip( X, Y, Z )
+
+    with open( xyz_file_path, "w") as ofile:
+        for line in rec_values_list2:
+            ofile.write( ",".join([str(val) for val in line ])+"\n")
+
+    return True
 
 
 def geosurface_read_gas_input(infile_path):
@@ -557,3 +581,4 @@ def geosurface_export_shapefile_pt3d(shapefile_path, geodata, fields_dict_list, 
     rec_values_list2 = zip(ids, X, Y, Z)
     ogr_write_point_result(point_shapelayer, field_list, rec_values_list2)
 
+    return True

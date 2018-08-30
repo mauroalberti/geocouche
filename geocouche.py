@@ -27,7 +27,7 @@ from .StereoplotWidget import StereoplotWidget
 from .AnglesWidget import AnglesWidget
 from .about_dialog import about_Dialog
 
-_plugin_name_ = "geocouche"
+_plugin_name_ = "Geocouche"
 _settings_name_ = "alberese"
 
 
@@ -84,7 +84,9 @@ class Geocouche(object):
             self.warn("Geologic stereonets already open")
             return
 
-        dwgtStereoplotDockWidget = QDockWidget(self.tPluginName, self.interface.mainWindow())
+        dwgtStereoplotDockWidget = QDockWidget(
+            "{} - stereonet".format(self.tPluginName),
+            self.interface.mainWindow())
         dwgtStereoplotDockWidget.setAttribute(Qt.WA_DeleteOnClose)
         dwgtStereoplotDockWidget.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 

@@ -28,13 +28,10 @@ import os
 from builtins import str
 from builtins import map
 
-from qgis.utils import showPluginHelp
-
 from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
 from .auxiliary_windows import *
 from .pygsf.orientations.orientations import Plane as GPlane, Axis as GAxis
-#from .gsf.geometry import GPlane, GAxis
 from .qgis_utils.qgs import pt_geoms_attrs
 from .mpl_utils.save_figure import FigureExportDlg
 from .fault_utils.utils import rake_to_apsg_movsense, movsense_to_apsg_movsense
@@ -131,7 +128,7 @@ class StereoplotWidget(QWidget):
         self.layout.addWidget(self.pshHelp)
 
         self.setLayout(self.layout)
-        self.setWindowTitle("Stereonet")
+        self.setWindowTitle("{} - stereonet".format(self.pluginName))
         self.adjustSize()
 
     def open_help(self):
@@ -517,7 +514,7 @@ class StereoplotWidget(QWidget):
                             try:
                                 sense = rake_to_apsg_movsense(rake)
                             except RakeInputException as e:
-                                self.warn(e.message)
+                                self.warn(e)
                                 return []
                         elif "ln_tr" in row and "ln_pl" in row and "ln_ms" in row:
                             lin_tr, lin_pl = row["ln_tr"], row["ln_pl"]
@@ -678,11 +675,14 @@ class StereoplotWidget(QWidget):
 
         try:
             self.stereonet.fig.savefig(str(fig_outpath), dpi=fig_resolution_dpi)
-            success, msg, func = True, "Image saved", self.info
+            success, msg = True, "Image saved"
         except Exception as e:
-            success, msg, func = False, "Exception with image saving: {}".format(e.message), self.warn
-        finally:
-            func(msg)
+            success, msg = False, "Exception with image saving: {}".format(e)
+
+        if success:
+            self.info(msg)
+        else:
+            self.warn(msg)
 
     def info(self, msg):
 
@@ -730,14 +730,12 @@ class HelpDialog(QDialog):
         url_path = "file:///{}/help/help_stereonet.html".format(os.path.dirname(__file__))
         helpTextBrwsr.setSource(QUrl(url_path))
         helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
-
+        helpTextBrwsr.setMinimumSize(700, 800)
         layout.addWidget(helpTextBrwsr)
 
         self.setLayout(layout)
 
-        self.adjustSize()
-
-        self.setWindowTitle("{} - Stereonet Help".format(plugin_name))
+        self.setWindowTitle("{} - stereonet help".format(plugin_name))
 
 
 
