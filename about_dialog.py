@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 
-
-from qgis.PyQt.QtWidgets import QDialog, QVBoxLayout, QTextBrowser
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 
     
-class about_Dialog( QDialog ):
+class about_Dialog(QDialog):
 
-    def __init__( self ):
+    def __init__(self):
 
-        super( about_Dialog, self ).__init__() 
+        super(about_Dialog, self).__init__() 
                             
         self.setup_gui()
         
-    def setup_gui( self ):
+    def setup_gui(self):
 
         dialog_layout = QVBoxLayout()
         
@@ -24,12 +24,13 @@ class about_Dialog( QDialog ):
         <br /><br />Licensed under the terms of GNU GPL 3.
         """ 
                
-        aboutQTextBrowser = QTextBrowser( self )
-        aboutQTextBrowser.insertHtml( htmlText )         
-                
-        dialog_layout.addWidget( aboutQTextBrowser )                                    
-        self.setLayout( dialog_layout )                    
-        self.adjustSize()                       
+        aboutQTextBrowser = QTextBrowser(self)
+        aboutQTextBrowser.insertHtml(htmlText)
+        aboutQTextBrowser.setMinimumSize(400, 200)
+        dialog_layout.addWidget(aboutQTextBrowser)
+
+        self.setLayout(dialog_layout)
+
         self.setWindowTitle('geocouche about')
 
 

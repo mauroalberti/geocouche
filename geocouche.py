@@ -69,7 +69,7 @@ class Geocouche(object):
         self.actions.append(self.actAngles)
 
         self.actAbout = create_action(
-            icon_path=':/plugins/geocouche/icons/about.ico',
+            icon_path=':/plugins/geocouche/icons/about.png',
             text='About',
             callback=self.run_about,
             parent=self.interface.mainWindow())
