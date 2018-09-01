@@ -3,7 +3,7 @@ geocouche is a QGIS plugin for processing geological meso-structures, based on t
 
 
 Currently, it can:
- - plot data from layers or texts in stereonets
+ - plot stereonets of data stored in layers or provided as text
  - calculate the angles between planes stored in a layer and a reference plane
 
 
