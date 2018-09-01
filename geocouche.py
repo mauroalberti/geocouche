@@ -27,7 +27,7 @@ from .StereoplotWidget import StereoplotWidget
 from .AnglesWidget import AnglesWidget
 from .about_dialog import about_Dialog
 
-_plugin_name_ = "Geocouche"
+_plugin_name_ = "geocouche"
 _settings_name_ = "alberese"
 
 

@@ -730,7 +730,7 @@ class HelpDialog(QDialog):
         url_path = "file:///{}/help/help_stereonet.html".format(os.path.dirname(__file__))
         helpTextBrwsr.setSource(QUrl(url_path))
         helpTextBrwsr.setSearchPaths(['{}/help'.format(os.path.dirname(__file__))])
-        helpTextBrwsr.setMinimumSize(700, 800)
+        helpTextBrwsr.setMinimumSize(700, 600)
         layout.addWidget(helpTextBrwsr)
 
         self.setLayout(layout)
