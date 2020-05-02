@@ -31,7 +31,7 @@ from builtins import map
 from .apsg import StereoNet, Lin as aLin, Fol as aFol, Fault as aFault
 
 from .auxiliary_windows import *
-from .pygsf.orientations.orientations import Plane as GPlane, Axis as GAxis
+from .pygsf.orientations.orientations import Plane as GPlane, Axis as GAxis, Azim, Plunge
 from .qgis_utils.qgs import pt_geoms_attrs
 from .mpl_utils.save_figure import FigureExportDlg
 from .fault_utils.utils import rake_to_apsg_movsense, movsense_to_apsg_movsense
@@ -610,7 +610,7 @@ class StereoplotWidget(QWidget):
                                                 color=marker_color,
                                                 alpha=marker_transp)
                         elif plot_setts["tPlotAxesFormat"] == "perpendicular planes":
-                            plane = GAxis(*line_rec).normal_gplane.dda
+                            plane = GAxis(Azim(line_rec[0]), Plunge(line_rec[1])).asDirect().normPlane().dda
                             p = aFol(*plane)
                             self.stereonet.plane(p,
                                                  linestyle=line_style,

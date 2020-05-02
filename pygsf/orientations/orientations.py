@@ -12,7 +12,10 @@ class Azim(object):
     Azim class
     """
 
-    def __init__(self, val: [int, float], unit: str='d'):
+    def __init__(self,
+                 val: [int, float],
+                 unit: str = 'd'
+                 ):
         """
         Creates an azimuth instance.
 
@@ -38,7 +41,7 @@ class Azim(object):
 
         # unit check
         if unit not in ("d", "r"):
-            raise OrienInputException("Unit input must be 'd' or 'r'")
+            raise OrienInputException(f"Unit input must be 'd' or 'r', got {type(unit)} with value {unit}")
 
         if not (isinstance(val, (int, float))):
             raise OrienInputException("Input azimuth value must be int/float")

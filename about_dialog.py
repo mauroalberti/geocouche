@@ -17,7 +17,7 @@ class about_Dialog(QDialog):
         dialog_layout = QVBoxLayout()
         
         htmlText = """
-        <h3>geocouche - release 2.0.1</h3>
+        <h3>geocouche - release 2.0.2</h3>
         Created by M. Alberti (alberti.m65@gmail.com).
         <br /><br /><a href="https://github.com/mauroalberti/geocouche">https://github.com/mauroalberti/geocouche</a>
         <br /><br />Stereonet plotting and processing of geological structures.  
